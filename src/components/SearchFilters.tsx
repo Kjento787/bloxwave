@@ -38,7 +38,7 @@ const sortOptions = [
 ];
 
 const ratingOptions = [
-  { value: "", label: "Any Rating" },
+  { value: "all", label: "Any Rating" },
   { value: "9", label: "9+ Stars" },
   { value: "8", label: "8+ Stars" },
   { value: "7", label: "7+ Stars" },
@@ -55,9 +55,9 @@ export const SearchFilters = ({
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     sortBy: "popularity.desc",
-    year: "",
-    genre: "",
-    rating: "",
+    year: "all",
+    genre: "all",
+    rating: "all",
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -68,22 +68,34 @@ export const SearchFilters = ({
   const updateFilter = (key: keyof FilterState, value: string) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    onFilterChange(newFilters);
+    // Convert "all" back to empty string for API calls
+    const apiFilters = {
+      ...newFilters,
+      year: newFilters.year === "all" ? "" : newFilters.year,
+      genre: newFilters.genre === "all" ? "" : newFilters.genre,
+      rating: newFilters.rating === "all" ? "" : newFilters.rating,
+    };
+    onFilterChange(apiFilters);
   };
 
   const clearFilters = () => {
     const defaultFilters: FilterState = {
       sortBy: "popularity.desc",
+      year: "all",
+      genre: "all",
+      rating: "all",
+    };
+    setFilters(defaultFilters);
+    onFilterChange({
+      sortBy: "popularity.desc",
       year: "",
       genre: "",
       rating: "",
-    };
-    setFilters(defaultFilters);
-    onFilterChange(defaultFilters);
+    });
   };
 
   const hasActiveFilters =
-    filters.year || filters.genre || filters.rating || filters.sortBy !== "popularity.desc";
+    filters.year !== "all" || filters.genre !== "all" || filters.rating !== "all" || filters.sortBy !== "popularity.desc";
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -150,7 +162,7 @@ export const SearchFilters = ({
                   <SelectValue placeholder="Any Year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any Year</SelectItem>
+                  <SelectItem value="all">Any Year</SelectItem>
                   {years.map((year) => (
                     <SelectItem key={year} value={String(year)}>
                       {year}
@@ -168,7 +180,7 @@ export const SearchFilters = ({
                   <SelectValue placeholder="All Genres" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Genres</SelectItem>
+                  <SelectItem value="all">All Genres</SelectItem>
                   {genres.map((genre) => (
                     <SelectItem key={genre.id} value={String(genre.id)}>
                       {genre.name}
