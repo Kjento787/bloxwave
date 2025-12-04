@@ -22,6 +22,7 @@ import {
   fetchMovieDetails,
   fetchSimilarMovies,
   getImageUrl,
+  getEmbedUrl,
   MovieDetails,
 } from "@/lib/tmdb";
 import {
@@ -155,22 +156,26 @@ const MovieDetail = () => {
 
       {/* Video Player Modal */}
       {isPlaying && (
-        <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
-          <Button
-            variant="glass"
-            size="icon"
-            className="absolute top-4 right-4 z-10"
-            onClick={() => setIsPlaying(false)}
-          >
-            <X className="h-6 w-6" />
-          </Button>
+        <div className="fixed inset-0 z-50 bg-background flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
+            <h2 className="text-lg font-semibold">{movie.title}</h2>
+            <Button
+              variant="glass"
+              size="icon"
+              onClick={() => setIsPlaying(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
 
-          <div className="text-center p-8">
-            <p className="text-xl mb-4">Now Playing: {movie.title}</p>
-            <p className="text-muted-foreground">
-              Simulating playback at {formatProgress(currentTime)} /{" "}
-              {formatRuntime(movie.runtime || 120)}
-            </p>
+          <div className="flex-1 w-full">
+            <iframe
+              src={getEmbedUrl(movie.id)}
+              className="w-full h-full"
+              allowFullScreen
+              allow="autoplay; fullscreen; picture-in-picture"
+              style={{ border: 'none' }}
+            />
           </div>
         </div>
       )}
