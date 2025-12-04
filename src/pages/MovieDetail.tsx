@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   X,
   Film,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -41,6 +43,8 @@ const MovieDetail = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: movie, isLoading } = useQuery({
@@ -105,6 +109,26 @@ const MovieDetail = () => {
     return () => clearInterval(interval);
   };
 
+  const toggleFullscreen = async () => {
+    if (!playerRef.current) return;
+    
+    if (!document.fullscreenElement) {
+      await playerRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const formatRuntime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -156,16 +180,25 @@ const MovieDetail = () => {
 
       {/* Video Player Modal */}
       {isPlaying && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col">
+        <div ref={playerRef} className="fixed inset-0 z-50 bg-background flex flex-col">
           <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
             <h2 className="text-lg font-semibold">{movie.title}</h2>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => setIsPlaying(false)}
-            >
-              <X className="h-6 w-6" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={toggleFullscreen}
+              >
+                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+              </Button>
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={() => setIsPlaying(false)}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 w-full">
