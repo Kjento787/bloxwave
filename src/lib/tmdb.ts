@@ -1,5 +1,5 @@
-const TMDB_API_KEY = "5042690d4de878589827cbbc6270caa5";
-const BASE_URL = "https://api.themoviedb.org/3";
+import { supabase } from "@/integrations/supabase/client";
+
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
 export interface Movie {
@@ -63,79 +63,82 @@ export interface MoviesResponse {
   total_results: number;
 }
 
+async function tmdbFetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('tmdb-proxy', {
+    body: { endpoint, params },
+  });
+
+  if (error) {
+    console.error('TMDB proxy error:', error);
+    throw new Error('Failed to fetch from TMDB');
+  }
+
+  if (data.error) {
+    throw new Error(data.error);
+  }
+
+  return data as T;
+}
+
 export const getImageUrl = (path: string | null, size: "w200" | "w300" | "w500" | "w780" | "original" = "w500"): string => {
   if (!path) return "";
   return `${IMAGE_BASE_URL}/${size}${path}`;
 };
 
+export const getEmbedUrl = (movieId: number): string => {
+  return `https://vidsrc.xyz/embed/movie/${movieId}`;
+};
+
 export const fetchPopularMovies = async (page = 1): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/movie/popular', { language: 'en-US', page: String(page) });
 };
 
 export const fetchTrendingMovies = async (timeWindow: "day" | "week" = "week"): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/trending/movie/${timeWindow}?api_key=${TMDB_API_KEY}`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>(`/trending/movie/${timeWindow}`);
 };
 
 export const fetchTopRatedMovies = async (page = 1): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/movie/top_rated', { language: 'en-US', page: String(page) });
 };
 
 export const fetchUpcomingMovies = async (page = 1): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/movie/upcoming', { language: 'en-US', page: String(page) });
 };
 
 export const fetchNowPlayingMovies = async (page = 1): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/movie/now_playing', { language: 'en-US', page: String(page) });
 };
 
 export const fetchMoviesByGenre = async (genreId: number, page = 1): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&with_genres=${genreId}&page=${page}&sort_by=popularity.desc`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/discover/movie', {
+    language: 'en-US',
+    with_genres: String(genreId),
+    page: String(page),
+    sort_by: 'popularity.desc'
+  });
 };
 
 export const fetchGenres = async (): Promise<{ genres: Genre[] }> => {
-  const response = await fetch(
-    `${BASE_URL}/genre/movie/list?api_key=${TMDB_API_KEY}&language=en-US`
-  );
-  return response.json();
+  return tmdbFetch<{ genres: Genre[] }>('/genre/movie/list', { language: 'en-US' });
 };
 
 export const fetchMovieDetails = async (movieId: number): Promise<MovieDetails> => {
-  const response = await fetch(
-    `${BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=videos,credits`
-  );
-  return response.json();
+  return tmdbFetch<MovieDetails>(`/movie/${movieId}`, { 
+    language: 'en-US',
+    append_to_response: 'videos,credits'
+  });
 };
 
 export const searchMovies = async (query: string, page = 1): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/search/movie', {
+    language: 'en-US',
+    query: encodeURIComponent(query),
+    page: String(page)
+  });
 };
 
 export const fetchSimilarMovies = async (movieId: number): Promise<MoviesResponse> => {
-  const response = await fetch(
-    `${BASE_URL}/movie/${movieId}/similar?api_key=${TMDB_API_KEY}&language=en-US`
-  );
-  return response.json();
+  return tmdbFetch<MoviesResponse>(`/movie/${movieId}/similar`, { language: 'en-US' });
 };
 
 export const discoverMovies = async (params: {
@@ -145,17 +148,15 @@ export const discoverMovies = async (params: {
   voteAverageGte?: number;
   withGenres?: string;
 }): Promise<MoviesResponse> => {
-  const searchParams = new URLSearchParams({
-    api_key: TMDB_API_KEY,
-    language: "en-US",
+  const queryParams: Record<string, string> = {
+    language: 'en-US',
     page: String(params.page || 1),
-    sort_by: params.sortBy || "popularity.desc",
-  });
+    sort_by: params.sortBy || 'popularity.desc',
+  };
 
-  if (params.year) searchParams.append("year", String(params.year));
-  if (params.voteAverageGte) searchParams.append("vote_average.gte", String(params.voteAverageGte));
-  if (params.withGenres) searchParams.append("with_genres", params.withGenres);
+  if (params.year) queryParams.year = String(params.year);
+  if (params.voteAverageGte) queryParams['vote_average.gte'] = String(params.voteAverageGte);
+  if (params.withGenres) queryParams.with_genres = params.withGenres;
 
-  const response = await fetch(`${BASE_URL}/discover/movie?${searchParams}`);
-  return response.json();
+  return tmdbFetch<MoviesResponse>('/discover/movie', queryParams);
 };
