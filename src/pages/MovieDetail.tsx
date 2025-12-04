@@ -10,6 +10,7 @@ import {
   Calendar,
   ChevronLeft,
   X,
+  Film,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -37,6 +38,7 @@ const MovieDetail = () => {
   const movieId = parseInt(id || "0");
   const [inWatchList, setInWatchList] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -163,6 +165,28 @@ const MovieDetail = () => {
             <X className="h-6 w-6" />
           </Button>
 
+          <div className="text-center p-8">
+            <p className="text-xl mb-4">Now Playing: {movie.title}</p>
+            <p className="text-muted-foreground">
+              Simulating playback at {formatProgress(currentTime)} /{" "}
+              {formatRuntime(movie.runtime || 120)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Trailer Modal */}
+      {showTrailer && (
+        <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
+          <Button
+            variant="glass"
+            size="icon"
+            className="absolute top-4 right-4 z-10"
+            onClick={() => setShowTrailer(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+
           {trailer ? (
             <iframe
               src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
@@ -173,10 +197,6 @@ const MovieDetail = () => {
           ) : (
             <div className="text-center p-8">
               <p className="text-xl mb-4">No trailer available for this movie</p>
-              <p className="text-muted-foreground">
-                Simulating playback at {formatProgress(currentTime)} /{" "}
-                {formatRuntime(movie.runtime || 120)}
-              </p>
             </div>
           )}
         </div>
@@ -284,6 +304,12 @@ const MovieDetail = () => {
                 <Play className="h-5 w-5 fill-current" />
                 {progressPercent > 0 ? "Continue Watching" : "Watch Now"}
               </Button>
+              {trailer && (
+                <Button size="lg" variant="outline" onClick={() => setShowTrailer(true)}>
+                  <Film className="h-5 w-5" />
+                  Watch Trailer
+                </Button>
+              )}
               <Button size="lg" variant="glass" onClick={toggleWatchList}>
                 {inWatchList ? (
                   <>
