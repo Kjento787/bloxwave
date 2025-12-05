@@ -9,6 +9,7 @@ import Genres from "./pages/Genres";
 import GenreDetail from "./pages/GenreDetail";
 import Search from "./pages/Search";
 import MovieDetail from "./pages/MovieDetail";
+import TVDetail from "./pages/TVDetail";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/genre/:id" element={<GenreDetail />} />
           <Route path="/search" element={<Search />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
+          <Route path="/tv/:id" element={<TVDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,0 +1,421 @@
+import { useState, useEffect, useRef } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Play,
+  Plus,
+  Check,
+  Star,
+  Clock,
+  Calendar,
+  ChevronLeft,
+  X,
+  Tv,
+  Maximize,
+  Minimize,
+} from "lucide-react";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { MovieCarousel } from "@/components/MovieCarousel";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  fetchTVDetails,
+  fetchSimilarTV,
+  getImageUrl,
+  getEmbedUrl,
+  TVDetails,
+} from "@/lib/tmdb";
+import {
+  isInWatchList,
+  addToWatchList,
+  removeFromWatchList,
+  saveWatchProgress,
+  getMovieProgress,
+} from "@/lib/watchHistory";
+import { cn } from "@/lib/utils";
+
+const TVDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const tvId = parseInt(id || "0");
+  const [inWatchList, setInWatchList] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(1);
+  const [selectedEpisode, setSelectedEpisode] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  const { data: tvShow, isLoading } = useQuery({
+    queryKey: ["tv", tvId],
+    queryFn: () => fetchTVDetails(tvId),
+    enabled: !!tvId,
+  });
+
+  const { data: similarData } = useQuery({
+    queryKey: ["similarTV", tvId],
+    queryFn: () => fetchSimilarTV(tvId),
+    enabled: !!tvId,
+  });
+
+  useEffect(() => {
+    setInWatchList(isInWatchList(tvId));
+  }, [tvId]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [tvId]);
+
+  const toggleWatchList = () => {
+    if (inWatchList) {
+      removeFromWatchList(tvId);
+    } else if (tvShow) {
+      addToWatchList({
+        movieId: tvShow.id,
+        title: tvShow.name,
+        posterPath: tvShow.poster_path,
+      });
+    }
+    setInWatchList(!inWatchList);
+  };
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+  };
+
+  const toggleFullscreen = async () => {
+    if (!playerRef.current) return;
+    
+    if (!document.fullscreenElement) {
+      await playerRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center pt-32">
+          <LoadingSpinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!tvShow) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center pt-32">
+          <h1 className="text-2xl font-bold mb-4">TV Show Not Found</h1>
+          <Link to="/">
+            <Button>Go Home</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const trailer = tvShow.videos?.results.find(
+    (v) => v.type === "Trailer" && v.site === "YouTube"
+  );
+  const creator = tvShow.credits?.crew.find((c) => c.job === "Creator" || c.job === "Executive Producer");
+  const cast = tvShow.credits?.cast.slice(0, 8) || [];
+  const currentSeason = tvShow.seasons?.find(s => s.season_number === selectedSeason);
+  const episodeCount = currentSeason?.episode_count || 10;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+
+      {/* Video Player Modal */}
+      {isPlaying && (
+        <div ref={playerRef} className="fixed inset-0 z-50 bg-background flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
+            <div>
+              <h2 className="text-lg font-semibold">{tvShow.name}</h2>
+              <p className="text-sm text-muted-foreground">Season {selectedSeason}, Episode {selectedEpisode}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={toggleFullscreen}
+              >
+                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+              </Button>
+              <Button
+                variant="glass"
+                size="icon"
+                onClick={() => setIsPlaying(false)}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full relative">
+            <div 
+              className="absolute inset-0 z-10 pointer-events-none"
+              style={{ background: 'transparent' }}
+            />
+            <iframe
+              src={getEmbedUrl(tvShow.id, "tv", selectedSeason, selectedEpisode)}
+              className="w-full h-full"
+              allowFullScreen
+              allow="autoplay; fullscreen; picture-in-picture"
+              referrerPolicy="no-referrer"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+              style={{ border: 'none' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Trailer Modal */}
+      {showTrailer && (
+        <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
+          <Button
+            variant="glass"
+            size="icon"
+            className="absolute top-4 right-4 z-10"
+            onClick={() => setShowTrailer(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+
+          {trailer ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+              className="w-full h-full max-w-6xl max-h-[80vh] aspect-video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="text-center p-8">
+              <p className="text-xl mb-4">No trailer available for this show</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hero Section */}
+      <section className="relative min-h-[70vh] pt-20">
+        {/* Background */}
+        <div className="absolute inset-0">
+          <img
+            src={getImageUrl(tvShow.backdrop_path, "original")}
+            alt={tvShow.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
+        </div>
+
+        {/* Content */}
+        <div className="relative container mx-auto px-4 py-12 flex flex-col lg:flex-row gap-8">
+          {/* Poster */}
+          <div className="flex-shrink-0">
+            <img
+              src={getImageUrl(tvShow.poster_path, "w500")}
+              alt={tvShow.name}
+              className="w-64 mx-auto lg:mx-0 rounded-xl shadow-card"
+            />
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 space-y-6">
+            <Link
+              to="/"
+              className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
+            </Link>
+
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="gap-1">
+                  <Tv className="h-3 w-3" />
+                  TV Series
+                </Badge>
+              </div>
+              <h1 className="text-3xl md:text-5xl font-bold mb-2">{tvShow.name}</h1>
+              {tvShow.tagline && (
+                <p className="text-lg text-muted-foreground italic">
+                  "{tvShow.tagline}"
+                </p>
+              )}
+            </div>
+
+            {/* Meta */}
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                <span className="font-semibold">{tvShow.vote_average.toFixed(1)}</span>
+                <span className="text-muted-foreground">
+                  ({tvShow.vote_count.toLocaleString()} votes)
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                {tvShow.first_air_date?.split("-")[0]}
+              </div>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                {tvShow.number_of_seasons} Season{tvShow.number_of_seasons !== 1 ? 's' : ''}
+              </div>
+              <div className="text-muted-foreground">
+                {tvShow.number_of_episodes} Episodes
+              </div>
+            </div>
+
+            {/* Genres */}
+            <div className="flex flex-wrap gap-2">
+              {tvShow.genres.map((genre) => (
+                <Badge key={genre.id} variant="secondary">
+                  {genre.name}
+                </Badge>
+              ))}
+            </div>
+
+            {/* Overview */}
+            <p className="text-foreground/90 leading-relaxed max-w-2xl">
+              {tvShow.overview}
+            </p>
+
+            {/* Season/Episode Selector */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Season:</span>
+                <Select value={String(selectedSeason)} onValueChange={(v) => setSelectedSeason(Number(v))}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tvShow.seasons?.filter(s => s.season_number > 0).map((season) => (
+                      <SelectItem key={season.id} value={String(season.season_number)}>
+                        {season.season_number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Episode:</span>
+                <Select value={String(selectedEpisode)} onValueChange={(v) => setSelectedEpisode(Number(v))}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => (
+                      <SelectItem key={ep} value={String(ep)}>
+                        {ep}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" variant="hero" onClick={handlePlay}>
+                <Play className="h-5 w-5 fill-current" />
+                Watch S{selectedSeason}E{selectedEpisode}
+              </Button>
+              {trailer && (
+                <Button size="lg" variant="outline" onClick={() => setShowTrailer(true)}>
+                  <Tv className="h-5 w-5" />
+                  Watch Trailer
+                </Button>
+              )}
+              <Button size="lg" variant="glass" onClick={toggleWatchList}>
+                {inWatchList ? (
+                  <>
+                    <Check className="h-5 w-5" />
+                    In My List
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    Add to List
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Creator */}
+            {creator && (
+              <div>
+                <span className="text-muted-foreground">Created by </span>
+                <span className="font-semibold">{creator.name}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Cast */}
+      {cast.length > 0 && (
+        <section className="container mx-auto px-4 py-12">
+          <h2 className="text-2xl font-bold mb-6">Cast</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+            {cast.map((person) => (
+              <div key={person.id} className="text-center">
+                <div className="aspect-square rounded-full overflow-hidden bg-muted mb-2">
+                  {person.profile_path ? (
+                    <img
+                      src={getImageUrl(person.profile_path, "w200")}
+                      alt={person.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <p className="font-medium text-sm line-clamp-1">{person.name}</p>
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  {person.character}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Similar Shows */}
+      {similarData?.results && similarData.results.length > 0 && (
+        <section className="container mx-auto px-4 py-12">
+          <MovieCarousel title="Similar Shows" movies={similarData.results} />
+        </section>
+      )}
+
+      <Footer />
+    </div>
+  );
+};
+
+export default TVDetail;

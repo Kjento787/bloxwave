@@ -5,16 +5,34 @@ const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 export interface Movie {
   id: number;
   title: string;
+  name?: string; // For TV shows
   overview: string;
   poster_path: string | null;
   backdrop_path: string | null;
   release_date: string;
+  first_air_date?: string; // For TV shows
   vote_average: number;
   vote_count: number;
   genre_ids: number[];
   popularity: number;
   adult: boolean;
   original_language: string;
+  media_type?: "movie" | "tv" | "person";
+}
+
+export interface TVShow {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  vote_average: number;
+  vote_count: number;
+  genre_ids: number[];
+  popularity: number;
+  original_language: string;
+  media_type: "tv";
 }
 
 export interface MovieDetails extends Movie {
@@ -27,6 +45,36 @@ export interface MovieDetails extends Movie {
   production_companies: { id: number; name: string; logo_path: string | null }[];
   videos?: { results: Video[] };
   credits?: { cast: Cast[]; crew: Crew[] };
+}
+
+export interface TVDetails {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  vote_average: number;
+  vote_count: number;
+  genres: Genre[];
+  tagline: string;
+  status: string;
+  number_of_seasons: number;
+  number_of_episodes: number;
+  episode_run_time: number[];
+  production_companies: { id: number; name: string; logo_path: string | null }[];
+  videos?: { results: Video[] };
+  credits?: { cast: Cast[]; crew: Crew[] };
+  seasons: TVSeason[];
+}
+
+export interface TVSeason {
+  id: number;
+  name: string;
+  season_number: number;
+  episode_count: number;
+  air_date: string;
+  poster_path: string | null;
 }
 
 export interface Genre {
@@ -85,8 +133,14 @@ export const getImageUrl = (path: string | null, size: "w200" | "w300" | "w500" 
   return `${IMAGE_BASE_URL}/${size}${path}`;
 };
 
-export const getEmbedUrl = (movieId: number): string => {
-  return `https://vidsrc.xyz/embed/movie/${movieId}`;
+export const getEmbedUrl = (id: number, type: "movie" | "tv" = "movie", season?: number, episode?: number): string => {
+  if (type === "tv" && season !== undefined && episode !== undefined) {
+    return `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`;
+  }
+  if (type === "tv") {
+    return `https://vidsrc.xyz/embed/tv/${id}/1/1`;
+  }
+  return `https://vidsrc.xyz/embed/movie/${id}`;
 };
 
 export const fetchPopularMovies = async (page = 1): Promise<MoviesResponse> => {
@@ -135,6 +189,48 @@ export const searchMovies = async (query: string, page = 1): Promise<MoviesRespo
     query: encodeURIComponent(query),
     page: String(page)
   });
+};
+
+export const searchMulti = async (query: string, page = 1): Promise<MoviesResponse> => {
+  const data = await tmdbFetch<MoviesResponse>('/search/multi', {
+    language: 'en-US',
+    query: encodeURIComponent(query),
+    page: String(page)
+  });
+  
+  // Filter out person results and normalize TV shows to look like movies
+  const filteredResults = data.results
+    .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+    .map((item: any) => ({
+      ...item,
+      title: item.title || item.name,
+      release_date: item.release_date || item.first_air_date,
+    }));
+  
+  return {
+    ...data,
+    results: filteredResults,
+  };
+};
+
+export const fetchTVDetails = async (tvId: number): Promise<TVDetails> => {
+  return tmdbFetch<TVDetails>(`/tv/${tvId}`, { 
+    language: 'en-US',
+    append_to_response: 'videos,credits'
+  });
+};
+
+export const fetchSimilarTV = async (tvId: number): Promise<MoviesResponse> => {
+  const data = await tmdbFetch<any>(`/tv/${tvId}/similar`, { language: 'en-US' });
+  return {
+    ...data,
+    results: data.results.map((item: any) => ({
+      ...item,
+      title: item.name,
+      release_date: item.first_air_date,
+      media_type: 'tv',
+    })),
+  };
 };
 
 export const fetchSimilarMovies = async (movieId: number): Promise<MoviesResponse> => {
