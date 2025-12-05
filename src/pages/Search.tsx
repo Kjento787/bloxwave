@@ -7,7 +7,7 @@ import { MovieCard } from "@/components/MovieCard";
 import { SearchFilters, FilterState } from "@/components/SearchFilters";
 import { LoadingSpinner, MovieCardSkeleton } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
-import { searchMovies, fetchGenres, discoverMovies } from "@/lib/tmdb";
+import { searchMovies, searchMulti, fetchGenres, discoverMovies } from "@/lib/tmdb";
 import { Search as SearchIcon } from "lucide-react";
 
 const Search = () => {
@@ -31,7 +31,7 @@ const Search = () => {
     queryKey: ["search", searchQuery, filters, page],
     queryFn: () => {
       if (searchQuery) {
-        return searchMovies(searchQuery, page);
+        return searchMulti(searchQuery, page);
       }
       return discoverMovies({
         page,
@@ -73,7 +73,7 @@ const Search = () => {
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Search</h1>
           <p className="text-muted-foreground">
-            Find your next favorite movie
+            Find your next favorite movie or TV show
           </p>
         </div>
 
@@ -91,7 +91,7 @@ const Search = () => {
             <SearchIcon className="h-16 w-16 text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">Start Searching</h2>
             <p className="text-muted-foreground max-w-md">
-              Enter a search term or use the filters to discover movies
+              Enter a search term or use the filters to discover movies and TV shows
             </p>
           </div>
         ) : isLoading ? (

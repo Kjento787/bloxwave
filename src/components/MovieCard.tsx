@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Play, Plus, Check, Star } from "lucide-react";
+import { Play, Plus, Check, Star, Tv, Film } from "lucide-react";
 import { Movie, getImageUrl } from "@/lib/tmdb";
 import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 import { isInWatchList, addToWatchList, removeFromWatchList } from "@/lib/watchHistory";
 
@@ -17,7 +18,10 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
   const [isHovered, setIsHovered] = useState(false);
   const [inList, setInList] = useState(isInWatchList(movie.id));
   const imageUrl = getImageUrl(movie.poster_path, "w500");
-  const year = movie.release_date?.split("-")[0] || "";
+  const title = movie.title || movie.name || "Unknown";
+  const year = (movie.release_date || movie.first_air_date)?.split("-")[0] || "";
+  const isTV = movie.media_type === "tv";
+  const detailPath = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
 
   const toggleWatchList = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -27,7 +31,7 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
     } else {
       addToWatchList({
         movieId: movie.id,
-        title: movie.title,
+        title: title,
         posterPath: movie.poster_path,
       });
     }
@@ -36,7 +40,7 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
 
   return (
     <Link
-      to={`/movie/${movie.id}`}
+      to={detailPath}
       className={cn(
         "group relative block rounded-xl overflow-hidden bg-card transition-all duration-300",
         "hover:scale-105 hover:shadow-card hover:z-10",
@@ -50,7 +54,7 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={movie.title}
+            alt={title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
           />
@@ -67,6 +71,14 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
             "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           )}
         />
+
+        {/* Media Type Badge */}
+        {movie.media_type && (
+          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md bg-primary/90 backdrop-blur-sm">
+            {isTV ? <Tv className="h-3 w-3" /> : <Film className="h-3 w-3" />}
+            <span className="text-xs font-semibold text-primary-foreground">{isTV ? "TV" : "Movie"}</span>
+          </div>
+        )}
 
         {/* Rating Badge */}
         <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm">
@@ -119,7 +131,7 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
       {/* Info */}
       <div className="p-3">
         <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
-          {movie.title}
+          {title}
         </h3>
         <p className="text-xs text-muted-foreground mt-1">{year}</p>
       </div>
