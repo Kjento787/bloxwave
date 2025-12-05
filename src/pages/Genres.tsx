@@ -104,7 +104,7 @@ const Genres = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
           {genres.map((genre, index) => {
             const Icon = genreIcons[genre.id] || Film;
             const gradientColor = genreColors[genre.id] || "from-primary/20 to-accent/20";
@@ -116,27 +116,30 @@ const Genres = () => {
               <Link
                 key={genre.id}
                 to={`/genre/${genre.id}`}
-                className="group relative h-40 rounded-xl overflow-hidden bg-card border border-border hover:border-primary transition-all duration-300 hover:scale-[1.02]"
+                className="group relative h-32 sm:h-36 md:h-40 lg:h-44 rounded-xl overflow-hidden bg-card border border-border hover:border-primary transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
               >
                 {/* Background Image */}
                 {backdrop && (
                   <img
                     src={getImageUrl(backdrop, "w780")}
                     alt={genre.name}
-                    className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-300"
+                    className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
                   />
                 )}
 
+                {/* Dark Overlay for better text readability */}
+                <div className="absolute inset-0 bg-background/70" />
+                
                 {/* Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor}`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/50 to-transparent" />
+                <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-60`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/40" />
 
                 {/* Content */}
-                <div className="relative h-full flex flex-col items-center justify-center p-6">
-                  <Icon className="h-10 w-10 text-primary mb-3 group-hover:scale-110 transition-transform duration-300" />
-                  <h3 className="text-xl font-bold text-center">{genre.name}</h3>
+                <div className="relative h-full flex flex-col items-center justify-center p-4 md:p-6">
+                  <Icon className="h-8 w-8 md:h-10 md:w-10 text-primary mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
+                  <h3 className="text-base md:text-lg lg:text-xl font-bold text-center text-foreground drop-shadow-md">{genre.name}</h3>
                   {totalResults && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-xs md:text-sm text-foreground/80 mt-1 drop-shadow-sm">
                       {totalResults.toLocaleString()} movies
                     </p>
                   )}
