@@ -1,16 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, User, Bell, Menu, X } from "lucide-react";
+import { Search, User, Bell, Menu, X, LogIn, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,6 +26,18 @@ export const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -29,6 +45,12 @@ export const Navbar = () => {
       setSearchOpen(false);
       setSearchQuery("");
     }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully");
+    navigate("/");
   };
 
   const navLinks = [
@@ -77,7 +99,7 @@ export const Navbar = () => {
                 <form onSubmit={handleSearch} className="flex items-center">
                   <Input
                     type="text"
-                    placeholder="Search movies..."
+                    placeholder="Search movies & TV..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-48 md:w-64 h-9 bg-secondary/50 border-border focus:border-primary animate-scale-in"
@@ -113,12 +135,31 @@ export const Navbar = () => {
               <Bell className="h-5 w-5" />
             </Button>
 
-            {/* Profile */}
-            <Link to="/profile">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {/* Auth/Profile */}
+            {user ? (
+              <>
+                <Link to="/profile">
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden md:flex h-9 w-9"
+                  onClick={handleSignOut}
+                  title="Sign Out"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="Sign In">
+                  <LogIn className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button
@@ -155,6 +196,25 @@ export const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              {user ? (
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary text-left"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  to="/auth"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-primary hover:bg-secondary"
+                >
+                  Sign In / Sign Up
+                </Link>
+              )}
             </div>
           </div>
         )}

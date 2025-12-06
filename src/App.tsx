@@ -11,6 +11,7 @@ import Search from "./pages/Search";
 import MovieDetail from "./pages/MovieDetail";
 import TVDetail from "./pages/TVDetail";
 import Profile from "./pages/Profile";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/movie/:id" element={<MovieDetail />} />
           <Route path="/tv/:id" element={<TVDetail />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </HashRouter>

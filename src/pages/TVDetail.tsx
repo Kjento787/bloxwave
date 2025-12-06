@@ -49,7 +49,7 @@ const TVDetail = () => {
   const [inWatchList, setInWatchList] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
-  const [selectedSeason, setSelectedSeason] = useState(1);
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -65,6 +65,22 @@ const TVDetail = () => {
     queryFn: () => fetchSimilarTV(tvId),
     enabled: !!tvId,
   });
+
+  // Initialize season when TV show data loads
+  useEffect(() => {
+    if (tvShow?.seasons) {
+      const firstValidSeason = tvShow.seasons.find(s => s.season_number > 0);
+      if (firstValidSeason && selectedSeason === null) {
+        setSelectedSeason(firstValidSeason.season_number);
+      }
+    }
+  }, [tvShow, selectedSeason]);
+
+  // Reset episode when season changes
+  const handleSeasonChange = (newSeason: number) => {
+    setSelectedSeason(newSeason);
+    setSelectedEpisode(1); // Reset to episode 1 when season changes
+  };
 
   useEffect(() => {
     setInWatchList(isInWatchList(tvId));
@@ -305,31 +321,31 @@ const TVDetail = () => {
             </p>
 
             {/* Season/Episode Selector */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Season:</span>
-                <Select value={String(selectedSeason)} onValueChange={(v) => setSelectedSeason(Number(v))}>
-                  <SelectTrigger className="w-24">
+            <div className="flex flex-wrap gap-4 sm:gap-6 items-center">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-sm sm:text-base tv:text-lg text-muted-foreground">Season:</span>
+                <Select value={String(selectedSeason || 1)} onValueChange={(v) => handleSeasonChange(Number(v))}>
+                  <SelectTrigger className="w-20 sm:w-24 tv:w-32 h-10 sm:h-11 tv:h-14 text-sm sm:text-base tv:text-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {tvShow.seasons?.filter(s => s.season_number > 0).map((season) => (
-                      <SelectItem key={season.id} value={String(season.season_number)}>
+                      <SelectItem key={season.id} value={String(season.season_number)} className="tv:text-lg tv:py-3">
                         {season.season_number}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Episode:</span>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-sm sm:text-base tv:text-lg text-muted-foreground">Episode:</span>
                 <Select value={String(selectedEpisode)} onValueChange={(v) => setSelectedEpisode(Number(v))}>
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-20 sm:w-24 tv:w-32 h-10 sm:h-11 tv:h-14 text-sm sm:text-base tv:text-lg">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 tv:max-h-80">
                     {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => (
-                      <SelectItem key={ep} value={String(ep)}>
+                      <SelectItem key={ep} value={String(ep)} className="tv:text-lg tv:py-3">
                         {ep}
                       </SelectItem>
                     ))}
