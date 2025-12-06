@@ -96,10 +96,10 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="container mx-auto -mt-32 relative z-10 space-y-12 pb-8">
-        {/* Genre Quick Access */}
+        {/* Genre Quick Access - transparent overlay on hero */}
         {genresData?.genres && (
           <section className="px-4 md:px-0">
-            <h2 className="text-xl md:text-2xl font-bold mb-4">Browse by Genre</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-4 drop-shadow-lg">Browse by Genre</h2>
             <GenreButtons genres={genresData.genres} />
           </section>
         )}
