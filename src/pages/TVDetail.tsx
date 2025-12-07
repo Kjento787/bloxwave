@@ -68,18 +68,21 @@ const TVDetail = () => {
 
   // Initialize season when TV show data loads
   useEffect(() => {
-    if (tvShow?.seasons) {
-      const firstValidSeason = tvShow.seasons.find(s => s.season_number > 0);
-      if (firstValidSeason && selectedSeason === null) {
-        setSelectedSeason(firstValidSeason.season_number);
+    if (tvShow?.seasons && tvShow.seasons.length > 0) {
+      const validSeasons = tvShow.seasons.filter(s => s.season_number > 0);
+      if (validSeasons.length > 0 && selectedSeason === null) {
+        setSelectedSeason(validSeasons[0].season_number);
+        setSelectedEpisode(1);
       }
     }
-  }, [tvShow, selectedSeason]);
+  }, [tvShow]);
 
   // Reset episode when season changes
   const handleSeasonChange = (newSeason: number) => {
-    setSelectedSeason(newSeason);
-    setSelectedEpisode(1); // Reset to episode 1 when season changes
+    if (newSeason !== selectedSeason) {
+      setSelectedSeason(newSeason);
+      setSelectedEpisode(1);
+    }
   };
 
   useEffect(() => {
@@ -191,17 +194,12 @@ const TVDetail = () => {
           </div>
 
           <div className="flex-1 w-full relative">
-            <div 
-              className="absolute inset-0 z-10 pointer-events-none"
-              style={{ background: 'transparent' }}
-            />
             <iframe
-              src={getEmbedUrl(tvShow.id, "tv", selectedSeason, selectedEpisode)}
+              src={getEmbedUrl(tvShow.id, "tv", selectedSeason || 1, selectedEpisode)}
               className="w-full h-full"
               allowFullScreen
-              allow="autoplay; fullscreen; picture-in-picture"
-              referrerPolicy="no-referrer"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              referrerPolicy="origin"
               style={{ border: 'none' }}
             />
           </div>
