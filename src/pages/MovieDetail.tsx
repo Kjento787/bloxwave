@@ -202,20 +202,12 @@ const MovieDetail = () => {
           </div>
 
           <div className="flex-1 w-full relative">
-            {/* Ad-blocking overlay - blocks click hijacking from ads */}
-            <div 
-              className="absolute inset-0 z-10 pointer-events-none"
-              style={{ 
-                background: 'transparent',
-              }}
-            />
             <iframe
               src={getEmbedUrl(movie.id)}
               className="w-full h-full"
               allowFullScreen
-              allow="autoplay; fullscreen; picture-in-picture"
-              referrerPolicy="no-referrer"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              referrerPolicy="origin"
               style={{ border: 'none' }}
             />
           </div>

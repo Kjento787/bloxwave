@@ -134,13 +134,14 @@ export const getImageUrl = (path: string | null, size: "w200" | "w300" | "w500" 
 };
 
 export const getEmbedUrl = (id: number, type: "movie" | "tv" = "movie", season?: number, episode?: number): string => {
+  // Using vidsrc.to which is more reliable for TV shows
   if (type === "tv" && season !== undefined && episode !== undefined) {
-    return `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`;
+    return `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
   }
   if (type === "tv") {
-    return `https://vidsrc.xyz/embed/tv/${id}/1/1`;
+    return `https://vidsrc.to/embed/tv/${id}/1/1`;
   }
-  return `https://vidsrc.xyz/embed/movie/${id}`;
+  return `https://vidsrc.to/embed/movie/${id}`;
 };
 
 export const fetchPopularMovies = async (page = 1): Promise<MoviesResponse> => {
