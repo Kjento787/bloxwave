@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, User, Bell, Menu, X, LogIn, LogOut, Shield } from "lucide-react";
+import { Search, User, Bell, Menu, X, LogIn, LogOut, Shield, Bookmark } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -153,10 +154,19 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9">
-              <Bell className="h-5 w-5" />
-            </Button>
+            {/* Theme Toggle */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+
+            {/* Watchlist - only show if logged in */}
+            {user && (
+              <Link to="/profile" className="hidden md:block">
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="My Watchlist">
+                  <Bookmark className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
 
             {/* Auth/Profile */}
             {user ? (
