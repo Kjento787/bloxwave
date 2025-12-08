@@ -3,8 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Play,
-  Plus,
-  Check,
   Star,
   Clock,
   Calendar,
@@ -18,6 +16,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ReviewSection } from "@/components/ReviewSection";
+import { WatchlistButton } from "@/components/WatchlistButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,24 +28,21 @@ import {
   MovieDetails,
 } from "@/lib/tmdb";
 import {
-  isInWatchList,
-  addToWatchList,
-  removeFromWatchList,
   saveWatchProgress,
   getMovieProgress,
 } from "@/lib/watchHistory";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
   const movieId = parseInt(id || "0");
-  const [inWatchList, setInWatchList] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: movie, isLoading } = useQuery({
     queryKey: ["movie", movieId],
@@ -60,29 +57,20 @@ const MovieDetail = () => {
   });
 
   useEffect(() => {
-    setInWatchList(isInWatchList(movieId));
     const progress = getMovieProgress(movieId);
     if (progress) {
       setCurrentTime(progress.currentTime);
     }
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session?.user);
+    });
   }, [movieId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [movieId]);
 
-  const toggleWatchList = () => {
-    if (inWatchList) {
-      removeFromWatchList(movieId);
-    } else if (movie) {
-      addToWatchList({
-        movieId: movie.id,
-        title: movie.title,
-        posterPath: movie.poster_path,
-      });
-    }
-    setInWatchList(!inWatchList);
-  };
 
   const handlePlay = () => {
     setIsPlaying(true);
@@ -349,19 +337,14 @@ const MovieDetail = () => {
                   Watch Trailer
                 </Button>
               )}
-              <Button size="lg" variant="glass" onClick={toggleWatchList}>
-                {inWatchList ? (
-                  <>
-                    <Check className="h-5 w-5" />
-                    In My List
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-5 w-5" />
-                    Add to List
-                  </>
-                )}
-              </Button>
+              {isAuthenticated && (
+                <WatchlistButton
+                  contentId={movieId}
+                  contentType="movie"
+                  size="lg"
+                  variant="glass"
+                />
+              )}
             </div>
 
             {/* Director */}
@@ -404,6 +387,15 @@ const MovieDetail = () => {
           </div>
         </section>
       )}
+
+      {/* Reviews Section */}
+      <section className="container mx-auto px-4 py-12">
+        <ReviewSection
+          contentId={movieId}
+          contentType="movie"
+          isAuthenticated={isAuthenticated}
+        />
+      </section>
 
       {/* Similar Movies */}
       {similarData?.results && similarData.results.length > 0 && (
