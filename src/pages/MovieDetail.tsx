@@ -8,6 +8,7 @@ import {
   Calendar,
   ChevronLeft,
   Film,
+  X,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -23,7 +24,6 @@ import {
   fetchMovieDetails,
   fetchSimilarMovies,
   getImageUrl,
-  getEmbedUrl,
 } from "@/lib/tmdb";
 import { getMovieProgress } from "@/lib/watchHistory";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,22 +104,34 @@ const MovieDetail = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Video Player with Ad Blocking */}
+      {/* Video Player with Ad Blocking & Server Selection */}
       {isPlaying && (
         <VideoPlayer
-          embedUrl={getEmbedUrl(movie.id)}
+          contentId={movie.id}
+          contentType="movie"
           title={movie.title}
           onClose={() => setIsPlaying(false)}
         />
       )}
 
-      {/* Trailer Modal */}
+      {/* Trailer Modal - uses YouTube directly */}
       {showTrailer && trailer && (
-        <VideoPlayer
-          embedUrl={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
-          title={`${movie.title} - Trailer`}
-          onClose={() => setShowTrailer(false)}
-        />
+        <div className="fixed inset-0 z-50 bg-background flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b border-border/50">
+            <h2 className="text-lg font-semibold">{movie.title} - Trailer</h2>
+            <Button variant="glass" size="icon" onClick={() => setShowTrailer(false)}>
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+          <div className="flex-1 w-full">
+            <iframe
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+              className="w-full h-full"
+              allowFullScreen
+              allow="autoplay; fullscreen"
+            />
+          </div>
+        </div>
       )}
 
       {/* Hero Section */}

@@ -1,19 +1,47 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Maximize, Minimize, ShieldCheck } from "lucide-react";
+import { X, Maximize, Minimize, ShieldCheck, Server, ChevronDown, Captions } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { EMBED_SERVERS, getEmbedUrl } from "@/lib/tmdb";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface VideoPlayerProps {
-  embedUrl: string;
+  contentId: number;
+  contentType: "movie" | "tv";
   title: string;
   subtitle?: string;
+  season?: number;
+  episode?: number;
   onClose: () => void;
 }
 
-export const VideoPlayer = ({ embedUrl, title, subtitle, onClose }: VideoPlayerProps) => {
+export const VideoPlayer = ({ 
+  contentId, 
+  contentType, 
+  title, 
+  subtitle, 
+  season, 
+  episode,
+  onClose 
+}: VideoPlayerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedServer, setSelectedServer] = useState("2embed");
   const playerRef = useRef<HTMLDivElement>(null);
+
+  const currentServer = EMBED_SERVERS.find(s => s.id === selectedServer) || EMBED_SERVERS[0];
+  const embedUrl = getEmbedUrl(contentId, contentType, season, episode, selectedServer);
+
+  const handleServerChange = (serverId: string) => {
+    setIsLoading(true);
+    setSelectedServer(serverId);
+  };
 
   const toggleFullscreen = async () => {
     if (!playerRef.current) return;
@@ -61,6 +89,28 @@ export const VideoPlayer = ({ embedUrl, title, subtitle, onClose }: VideoPlayerP
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Server Selector */}
+          <div className="flex items-center gap-2">
+            <Server className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedServer} onValueChange={handleServerChange}>
+              <SelectTrigger className="w-[180px] h-9 bg-background/50 border-border/50">
+                <SelectValue placeholder="Select server" />
+              </SelectTrigger>
+              <SelectContent>
+                {EMBED_SERVERS.map((server) => (
+                  <SelectItem key={server.id} value={server.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{server.name}</span>
+                      {server.hasSubtitles && (
+                        <Captions className="h-3.5 w-3.5 text-primary" />
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <Button variant="glass" size="icon" onClick={toggleFullscreen}>
             {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
           </Button>
@@ -70,6 +120,23 @@ export const VideoPlayer = ({ embedUrl, title, subtitle, onClose }: VideoPlayerP
         </div>
       </div>
 
+      {/* Subtitle indicator */}
+      <div className="px-4 py-2 bg-background/60 border-b border-border/30 flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Current:</span>
+        <span className="font-medium">{currentServer.name}</span>
+        {currentServer.hasSubtitles ? (
+          <span className="flex items-center gap-1 text-primary text-xs">
+            <Captions className="h-3.5 w-3.5" />
+            Subtitles available
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-xs">No subtitles</span>
+        )}
+        <span className="text-muted-foreground ml-auto text-xs">
+          Try another server if this one doesn't work
+        </span>
+      </div>
+
       {/* Video Container with Ad Blocking */}
       <div className="flex-1 w-full relative overflow-hidden video-player-container">
         {/* Loading state */}
@@ -77,13 +144,14 @@ export const VideoPlayer = ({ embedUrl, title, subtitle, onClose }: VideoPlayerP
           <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
             <div className="flex flex-col items-center gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-              <p className="text-muted-foreground">Loading player...</p>
+              <p className="text-muted-foreground">Loading {currentServer.name}...</p>
             </div>
           </div>
         )}
 
         {/* Iframe with restricted permissions */}
         <iframe
+          key={selectedServer}
           src={embedUrl}
           className={cn(
             "w-full h-full transition-opacity duration-300",

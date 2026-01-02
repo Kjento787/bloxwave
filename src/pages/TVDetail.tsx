@@ -8,6 +8,7 @@ import {
   Calendar,
   ChevronLeft,
   Tv,
+  X,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -30,7 +31,6 @@ import {
   fetchTVDetails,
   fetchSimilarTV,
   getImageUrl,
-  getEmbedUrl,
 } from "@/lib/tmdb";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -126,23 +126,37 @@ const TVDetail = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Video Player with Ad Blocking */}
+      {/* Video Player with Ad Blocking & Server Selection */}
       {isPlaying && (
         <VideoPlayer
-          embedUrl={getEmbedUrl(tvShow.id, "tv", selectedSeason || 1, selectedEpisode)}
+          contentId={tvShow.id}
+          contentType="tv"
           title={tvShow.name}
           subtitle={`Season ${selectedSeason}, Episode ${selectedEpisode}`}
+          season={selectedSeason || 1}
+          episode={selectedEpisode}
           onClose={() => setIsPlaying(false)}
         />
       )}
 
-      {/* Trailer Modal */}
+      {/* Trailer Modal - uses YouTube directly */}
       {showTrailer && trailer && (
-        <VideoPlayer
-          embedUrl={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
-          title={`${tvShow.name} - Trailer`}
-          onClose={() => setShowTrailer(false)}
-        />
+        <div className="fixed inset-0 z-50 bg-background flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b border-border/50">
+            <h2 className="text-lg font-semibold">{tvShow.name} - Trailer</h2>
+            <Button variant="glass" size="icon" onClick={() => setShowTrailer(false)}>
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+          <div className="flex-1 w-full">
+            <iframe
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+              className="w-full h-full"
+              allowFullScreen
+              allow="autoplay; fullscreen"
+            />
+          </div>
+        </div>
       )}
 
       {/* Hero Section */}
