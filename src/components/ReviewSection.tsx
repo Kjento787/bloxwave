@@ -5,6 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useReviews } from "@/hooks/useReviews";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { toast } from "sonner";
+
+const MAX_REVIEW_LENGTH = 5000;
 
 interface ReviewSectionProps {
   contentId: number;
@@ -21,7 +24,14 @@ export const ReviewSection = ({ contentId, contentType, isAuthenticated }: Revie
 
   const handleSubmit = () => {
     if (rating === 0) return;
-    submitReview.mutate({ rating, reviewText });
+    
+    const trimmedText = reviewText.trim();
+    if (trimmedText.length > MAX_REVIEW_LENGTH) {
+      toast.error(`Review must be less than ${MAX_REVIEW_LENGTH.toLocaleString()} characters`);
+      return;
+    }
+    
+    submitReview.mutate({ rating, reviewText: trimmedText });
     setIsWriting(false);
   };
 
@@ -92,12 +102,21 @@ export const ReviewSection = ({ contentId, contentType, isAuthenticated }: Revie
           </div>
 
           {/* Review Text */}
-          <Textarea
-            placeholder="Share your thoughts (optional)..."
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            className="min-h-[100px] resize-none"
-          />
+          <div className="space-y-1">
+            <Textarea
+              placeholder="Share your thoughts (optional)..."
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              className="min-h-[100px] resize-none"
+              maxLength={MAX_REVIEW_LENGTH}
+            />
+            <p className={cn(
+              "text-xs text-right",
+              reviewText.length > MAX_REVIEW_LENGTH * 0.9 ? "text-destructive" : "text-muted-foreground"
+            )}>
+              {reviewText.length.toLocaleString()}/{MAX_REVIEW_LENGTH.toLocaleString()}
+            </p>
+          </div>
 
           <div className="flex gap-2">
             <Button
