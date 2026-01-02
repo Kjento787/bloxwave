@@ -1,23 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Play,
-  Plus,
-  Check,
   Star,
   Clock,
   Calendar,
   ChevronLeft,
-  X,
   Tv,
-  Maximize,
-  Minimize,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ReviewSection } from "@/components/ReviewSection";
+import { TMDBReviews } from "@/components/TMDBReviews";
+import { WatchlistButton } from "@/components/WatchlistButton";
+import { VideoPlayer } from "@/components/VideoPlayer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,27 +31,17 @@ import {
   fetchSimilarTV,
   getImageUrl,
   getEmbedUrl,
-  TVDetails,
 } from "@/lib/tmdb";
-import {
-  isInWatchList,
-  addToWatchList,
-  removeFromWatchList,
-  saveWatchProgress,
-  getMovieProgress,
-} from "@/lib/watchHistory";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const TVDetail = () => {
   const { id } = useParams<{ id: string }>();
   const tvId = parseInt(id || "0");
-  const [inWatchList, setInWatchList] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const playerRef = useRef<HTMLDivElement>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const { data: tvShow, isLoading } = useQuery({
     queryKey: ["tv", tvId],
@@ -66,6 +55,13 @@ const TVDetail = () => {
     enabled: !!tvId,
   });
 
+  // Check authentication
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session?.user);
+    });
+  }, []);
+
   // Initialize season when TV show data loads
   useEffect(() => {
     if (tvShow?.seasons && tvShow.seasons.length > 0) {
@@ -75,7 +71,7 @@ const TVDetail = () => {
         setSelectedEpisode(1);
       }
     }
-  }, [tvShow]);
+  }, [tvShow, selectedSeason]);
 
   // Reset episode when season changes
   const handleSeasonChange = (newSeason: number) => {
@@ -86,49 +82,12 @@ const TVDetail = () => {
   };
 
   useEffect(() => {
-    setInWatchList(isInWatchList(tvId));
-  }, [tvId]);
-
-  useEffect(() => {
     window.scrollTo(0, 0);
   }, [tvId]);
-
-  const toggleWatchList = () => {
-    if (inWatchList) {
-      removeFromWatchList(tvId);
-    } else if (tvShow) {
-      addToWatchList({
-        movieId: tvShow.id,
-        title: tvShow.name,
-        posterPath: tvShow.poster_path,
-      });
-    }
-    setInWatchList(!inWatchList);
-  };
 
   const handlePlay = () => {
     setIsPlaying(true);
   };
-
-  const toggleFullscreen = async () => {
-    if (!playerRef.current) return;
-    
-    if (!document.fullscreenElement) {
-      await playerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   if (isLoading) {
     return (
@@ -167,70 +126,23 @@ const TVDetail = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Video Player Modal */}
+      {/* Video Player with Ad Blocking */}
       {isPlaying && (
-        <div ref={playerRef} className="fixed inset-0 z-50 bg-background flex flex-col">
-          <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
-            <div>
-              <h2 className="text-lg font-semibold">{tvShow.name}</h2>
-              <p className="text-sm text-muted-foreground">Season {selectedSeason}, Episode {selectedEpisode}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="glass"
-                size="icon"
-                onClick={toggleFullscreen}
-              >
-                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-              </Button>
-              <Button
-                variant="glass"
-                size="icon"
-                onClick={() => setIsPlaying(false)}
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 w-full relative">
-            <iframe
-              src={getEmbedUrl(tvShow.id, "tv", selectedSeason || 1, selectedEpisode)}
-              className="w-full h-full"
-              allowFullScreen
-              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-              referrerPolicy="origin"
-              style={{ border: 'none' }}
-            />
-          </div>
-        </div>
+        <VideoPlayer
+          embedUrl={getEmbedUrl(tvShow.id, "tv", selectedSeason || 1, selectedEpisode)}
+          title={tvShow.name}
+          subtitle={`Season ${selectedSeason}, Episode ${selectedEpisode}`}
+          onClose={() => setIsPlaying(false)}
+        />
       )}
 
       {/* Trailer Modal */}
-      {showTrailer && (
-        <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
-          <Button
-            variant="glass"
-            size="icon"
-            className="absolute top-4 right-4 z-10"
-            onClick={() => setShowTrailer(false)}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-
-          {trailer ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
-              className="w-full h-full max-w-6xl max-h-[80vh] aspect-video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <div className="text-center p-8">
-              <p className="text-xl mb-4">No trailer available for this show</p>
-            </div>
-          )}
-        </div>
+      {showTrailer && trailer && (
+        <VideoPlayer
+          embedUrl={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+          title={`${tvShow.name} - Trailer`}
+          onClose={() => setShowTrailer(false)}
+        />
       )}
 
       {/* Hero Section */}
@@ -364,19 +276,14 @@ const TVDetail = () => {
                   Watch Trailer
                 </Button>
               )}
-              <Button size="lg" variant="glass" onClick={toggleWatchList}>
-                {inWatchList ? (
-                  <>
-                    <Check className="h-5 w-5" />
-                    In My List
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-5 w-5" />
-                    Add to List
-                  </>
-                )}
-              </Button>
+              {isAuthenticated && (
+                <WatchlistButton
+                  contentId={tvId}
+                  contentType="tv"
+                  size="lg"
+                  variant="glass"
+                />
+              )}
             </div>
 
             {/* Creator */}
@@ -419,6 +326,20 @@ const TVDetail = () => {
           </div>
         </section>
       )}
+
+      {/* TMDB Reviews */}
+      <section className="container mx-auto px-4 py-12">
+        <TMDBReviews contentId={tvId} contentType="tv" />
+      </section>
+
+      {/* User Reviews Section */}
+      <section className="container mx-auto px-4 py-12 border-t border-border/30">
+        <ReviewSection
+          contentId={tvId}
+          contentType="tv"
+          isAuthenticated={isAuthenticated}
+        />
+      </section>
 
       {/* Similar Shows */}
       {similarData?.results && similarData.results.length > 0 && (
