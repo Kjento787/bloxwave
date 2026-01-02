@@ -133,15 +133,57 @@ export const getImageUrl = (path: string | null, size: "w200" | "w300" | "w500" 
   return `${IMAGE_BASE_URL}/${size}${path}`;
 };
 
-export const getEmbedUrl = (id: number, type: "movie" | "tv" = "movie", season?: number, episode?: number): string => {
-  // Using 2embed which is reliable for both movies and TV shows
-  if (type === "tv" && season !== undefined && episode !== undefined) {
-    return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
+export interface EmbedServer {
+  id: string;
+  name: string;
+  hasSubtitles: boolean;
+}
+
+export const EMBED_SERVERS: EmbedServer[] = [
+  { id: "2embed", name: "Server 1 (2Embed)", hasSubtitles: true },
+  { id: "vidsrc", name: "Server 2 (VidSrc)", hasSubtitles: true },
+  { id: "vidsrcpro", name: "Server 3 (VidSrc Pro)", hasSubtitles: true },
+  { id: "embedsu", name: "Server 4 (Embed.su)", hasSubtitles: false },
+  { id: "autoembed", name: "Server 5 (AutoEmbed)", hasSubtitles: true },
+];
+
+export const getEmbedUrl = (
+  id: number, 
+  type: "movie" | "tv" = "movie", 
+  season?: number, 
+  episode?: number,
+  serverId: string = "2embed"
+): string => {
+  const s = season ?? 1;
+  const e = episode ?? 1;
+  
+  switch (serverId) {
+    case "vidsrc":
+      return type === "tv" 
+        ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`
+        : `https://vidsrc.cc/v2/embed/movie/${id}`;
+    
+    case "vidsrcpro":
+      return type === "tv"
+        ? `https://vidsrc.pro/embed/tv/${id}/${s}/${e}`
+        : `https://vidsrc.pro/embed/movie/${id}`;
+    
+    case "embedsu":
+      return type === "tv"
+        ? `https://embed.su/embed/tv/${id}/${s}/${e}`
+        : `https://embed.su/embed/movie/${id}`;
+    
+    case "autoembed":
+      return type === "tv"
+        ? `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`
+        : `https://player.autoembed.cc/embed/movie/${id}`;
+    
+    case "2embed":
+    default:
+      return type === "tv"
+        ? `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`
+        : `https://www.2embed.cc/embed/${id}`;
   }
-  if (type === "tv") {
-    return `https://www.2embed.cc/embedtv/${id}&s=1&e=1`;
-  }
-  return `https://www.2embed.cc/embed/${id}`;
 };
 
 export const fetchPopularMovies = async (page = 1): Promise<MoviesResponse> => {
