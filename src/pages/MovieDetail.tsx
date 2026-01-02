@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -7,17 +7,16 @@ import {
   Clock,
   Calendar,
   ChevronLeft,
-  X,
   Film,
-  Maximize,
-  Minimize,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ReviewSection } from "@/components/ReviewSection";
+import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
+import { VideoPlayer } from "@/components/VideoPlayer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,24 +24,16 @@ import {
   fetchSimilarMovies,
   getImageUrl,
   getEmbedUrl,
-  MovieDetails,
 } from "@/lib/tmdb";
-import {
-  saveWatchProgress,
-  getMovieProgress,
-} from "@/lib/watchHistory";
+import { getMovieProgress } from "@/lib/watchHistory";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
   const movieId = parseInt(id || "0");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const playerRef = useRef<HTMLDivElement>(null);
 
   const { data: movie, isLoading } = useQuery({
     queryKey: ["movie", movieId],
@@ -57,76 +48,23 @@ const MovieDetail = () => {
   });
 
   useEffect(() => {
-    const progress = getMovieProgress(movieId);
-    if (progress) {
-      setCurrentTime(progress.currentTime);
-    }
-    
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session?.user);
     });
-  }, [movieId]);
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [movieId]);
 
-
   const handlePlay = () => {
     setIsPlaying(true);
-    // Simulate video progress
-    const duration = (movie?.runtime || 120) * 60; // Convert minutes to seconds
-    const interval = setInterval(() => {
-      setCurrentTime((prev) => {
-        const newTime = prev + 1;
-        if (movie) {
-          saveWatchProgress({
-            movieId: movie.id,
-            title: movie.title,
-            posterPath: movie.poster_path,
-            backdropPath: movie.backdrop_path,
-            progress: (newTime / duration) * 100,
-            currentTime: newTime,
-            duration,
-            lastWatched: new Date().toISOString(),
-          });
-        }
-        return newTime;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
   };
-
-  const toggleFullscreen = async () => {
-    if (!playerRef.current) return;
-    
-    if (!document.fullscreenElement) {
-      await playerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   const formatRuntime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
-  };
-
-  const formatProgress = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (isLoading) {
@@ -166,67 +104,22 @@ const MovieDetail = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Video Player Modal */}
+      {/* Video Player with Ad Blocking */}
       {isPlaying && (
-        <div ref={playerRef} className="fixed inset-0 z-50 bg-background flex flex-col">
-          <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
-            <h2 className="text-lg font-semibold">{movie.title}</h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="glass"
-                size="icon"
-                onClick={toggleFullscreen}
-              >
-                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-              </Button>
-              <Button
-                variant="glass"
-                size="icon"
-                onClick={() => setIsPlaying(false)}
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 w-full relative">
-            <iframe
-              src={getEmbedUrl(movie.id)}
-              className="w-full h-full"
-              allowFullScreen
-              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-              referrerPolicy="origin"
-              style={{ border: 'none' }}
-            />
-          </div>
-        </div>
+        <VideoPlayer
+          embedUrl={getEmbedUrl(movie.id)}
+          title={movie.title}
+          onClose={() => setIsPlaying(false)}
+        />
       )}
 
       {/* Trailer Modal */}
-      {showTrailer && (
-        <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
-          <Button
-            variant="glass"
-            size="icon"
-            className="absolute top-4 right-4 z-10"
-            onClick={() => setShowTrailer(false)}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-
-          {trailer ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
-              className="w-full h-full max-w-6xl max-h-[80vh] aspect-video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <div className="text-center p-8">
-              <p className="text-xl mb-4">No trailer available for this movie</p>
-            </div>
-          )}
-        </div>
+      {showTrailer && trailer && (
+        <VideoPlayer
+          embedUrl={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+          title={`${movie.title} - Trailer`}
+          onClose={() => setShowTrailer(false)}
+        />
       )}
 
       {/* Hero Section */}
@@ -388,8 +281,13 @@ const MovieDetail = () => {
         </section>
       )}
 
-      {/* Reviews Section */}
+      {/* TMDB Reviews */}
       <section className="container mx-auto px-4 py-12">
+        <TMDBReviews contentId={movieId} contentType="movie" />
+      </section>
+
+      {/* User Reviews Section */}
+      <section className="container mx-auto px-4 py-12 border-t border-border/30">
         <ReviewSection
           contentId={movieId}
           contentType="movie"
