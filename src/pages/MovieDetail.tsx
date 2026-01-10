@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   Film,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -18,6 +19,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,6 +36,7 @@ const MovieDetail = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   const { data: movie, isLoading } = useQuery({
     queryKey: ["movie", movieId],
@@ -58,6 +61,16 @@ const MovieDetail = () => {
   }, [movieId]);
 
   const handlePlay = () => {
+    // Check if content is adult-rated (18+)
+    if (movie?.adult) {
+      setShowAgeVerification(true);
+    } else {
+      setIsPlaying(true);
+    }
+  };
+
+  const handleAgeConfirm = () => {
+    setShowAgeVerification(false);
     setIsPlaying(true);
   };
 
@@ -103,6 +116,14 @@ const MovieDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
+      {/* Age Verification Dialog */}
+      <AgeVerificationDialog
+        open={showAgeVerification}
+        onConfirm={handleAgeConfirm}
+        onCancel={() => setShowAgeVerification(false)}
+        title={movie.title}
+      />
 
       {/* Video Player with Ad Blocking & Server Selection */}
       {isPlaying && (
@@ -169,7 +190,15 @@ const MovieDetail = () => {
             </Link>
 
             <div>
-              <h1 className="text-3xl md:text-5xl font-bold mb-2">{movie.title}</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl md:text-5xl font-bold">{movie.title}</h1>
+                {movie.adult && (
+                  <Badge variant="destructive" className="gap-1 text-sm">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    18+
+                  </Badge>
+                )}
+              </div>
               {movie.tagline && (
                 <p className="text-lg text-muted-foreground italic">
                   "{movie.tagline}"
