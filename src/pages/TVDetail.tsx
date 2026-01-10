@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   Tv,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -18,6 +19,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,6 +33,7 @@ import {
   fetchTVDetails,
   fetchSimilarTV,
   getImageUrl,
+  TVDetails,
 } from "@/lib/tmdb";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,6 +45,7 @@ const TVDetail = () => {
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   const { data: tvShow, isLoading } = useQuery({
     queryKey: ["tv", tvId],
@@ -85,7 +89,30 @@ const TVDetail = () => {
     window.scrollTo(0, 0);
   }, [tvId]);
 
+  // Check if TV show is adult content (based on genres or other indicators)
+  const isAdultContent = (tvShow: TVDetails | undefined): boolean => {
+    if (!tvShow) return false;
+    // Check for adult-themed genres or content ratings
+    const adultGenreIds = [10749]; // Romance can sometimes indicate adult content
+    // Check if show name or overview contains adult indicators
+    const adultIndicators = ['adult', '18+', 'explicit', 'erotic'];
+    const hasAdultIndicator = adultIndicators.some(indicator => 
+      tvShow.name?.toLowerCase().includes(indicator) || 
+      tvShow.overview?.toLowerCase().includes(indicator)
+    );
+    return hasAdultIndicator;
+  };
+
   const handlePlay = () => {
+    if (isAdultContent(tvShow)) {
+      setShowAgeVerification(true);
+    } else {
+      setIsPlaying(true);
+    }
+  };
+
+  const handleAgeConfirm = () => {
+    setShowAgeVerification(false);
     setIsPlaying(true);
   };
 
@@ -125,6 +152,14 @@ const TVDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
+      {/* Age Verification Dialog */}
+      <AgeVerificationDialog
+        open={showAgeVerification}
+        onConfirm={handleAgeConfirm}
+        onCancel={() => setShowAgeVerification(false)}
+        title={tvShow.name}
+      />
 
       {/* Video Player with Ad Blocking & Server Selection */}
       {isPlaying && (
@@ -199,6 +234,12 @@ const TVDetail = () => {
                   <Tv className="h-3 w-3" />
                   TV Series
                 </Badge>
+                {isAdultContent(tvShow) && (
+                  <Badge variant="destructive" className="gap-1">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    18+
+                  </Badge>
+                )}
               </div>
               <h1 className="text-3xl md:text-5xl font-bold mb-2">{tvShow.name}</h1>
               {tvShow.tagline && (
