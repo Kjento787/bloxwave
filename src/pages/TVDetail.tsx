@@ -34,6 +34,7 @@ import {
   fetchSimilarTV,
   getImageUrl,
   TVDetails,
+  isTVAdultRated,
 } from "@/lib/tmdb";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -89,22 +90,11 @@ const TVDetail = () => {
     window.scrollTo(0, 0);
   }, [tvId]);
 
-  // Check if TV show is adult content (based on genres or other indicators)
-  const isAdultContent = (tvShow: TVDetails | undefined): boolean => {
-    if (!tvShow) return false;
-    // Check for adult-themed genres or content ratings
-    const adultGenreIds = [10749]; // Romance can sometimes indicate adult content
-    // Check if show name or overview contains adult indicators
-    const adultIndicators = ['adult', '18+', 'explicit', 'erotic'];
-    const hasAdultIndicator = adultIndicators.some(indicator => 
-      tvShow.name?.toLowerCase().includes(indicator) || 
-      tvShow.overview?.toLowerCase().includes(indicator)
-    );
-    return hasAdultIndicator;
-  };
+  // Check if TV show is adult content using content ratings
+  const isAdult = tvShow ? isTVAdultRated(tvShow) : false;
 
   const handlePlay = () => {
-    if (isAdultContent(tvShow)) {
+    if (isAdult) {
       setShowAgeVerification(true);
     } else {
       setIsPlaying(true);
@@ -234,7 +224,7 @@ const TVDetail = () => {
                   <Tv className="h-3 w-3" />
                   TV Series
                 </Badge>
-                {isAdultContent(tvShow) && (
+                {isAdult && (
                   <Badge variant="destructive" className="gap-1">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     18+

@@ -35,6 +35,14 @@ export interface TVShow {
   media_type: "tv";
 }
 
+export interface ReleaseDateResult {
+  iso_3166_1: string;
+  release_dates: {
+    certification: string;
+    type: number;
+  }[];
+}
+
 export interface MovieDetails extends Movie {
   runtime: number;
   genres: Genre[];
@@ -45,6 +53,12 @@ export interface MovieDetails extends Movie {
   production_companies: { id: number; name: string; logo_path: string | null }[];
   videos?: { results: Video[] };
   credits?: { cast: Cast[]; crew: Crew[] };
+  release_dates?: { results: ReleaseDateResult[] };
+}
+
+export interface ContentRating {
+  iso_3166_1: string;
+  rating: string;
 }
 
 export interface TVDetails {
@@ -66,6 +80,7 @@ export interface TVDetails {
   videos?: { results: Video[] };
   credits?: { cast: Cast[]; crew: Crew[] };
   seasons: TVSeason[];
+  content_ratings?: { results: ContentRating[] };
 }
 
 export interface TVSeason {
@@ -234,8 +249,59 @@ export const fetchGenres = async (): Promise<{ genres: Genre[] }> => {
 export const fetchMovieDetails = async (movieId: number): Promise<MovieDetails> => {
   return tmdbFetch<MovieDetails>(`/movie/${movieId}`, { 
     language: 'en-US',
-    append_to_response: 'videos,credits'
+    append_to_response: 'videos,credits,release_dates'
   });
+};
+
+// Check if movie has 18+ certification (R, NC-17, X, 18, etc.)
+export const isAdultRated = (movie: MovieDetails): boolean => {
+  // If explicitly marked as adult, return true
+  if (movie.adult) return true;
+  
+  // Check release_dates for certifications
+  if (!movie.release_dates?.results) return false;
+  
+  // Adult certifications by country
+  const adultCertifications: Record<string, string[]> = {
+    US: ['R', 'NC-17', 'X', 'NR'], // NR often means unrated adult content
+    GB: ['18', 'R18'],
+    DE: ['18', 'FSK 18'],
+    FR: ['18', '-18'],
+    AU: ['R18+', 'X18+'],
+    BR: ['18'],
+    CA: ['R', '18A', '18+'],
+    IN: ['A'],
+    IT: ['VM18'],
+    JP: ['R18+'],
+    KR: ['18'],
+    MX: ['D'],
+    NL: ['18'],
+    ES: ['18'],
+  };
+  
+  // Check US first, then other countries
+  const priorityCountries = ['US', 'GB', 'CA', 'AU', 'DE', 'FR'];
+  
+  for (const country of priorityCountries) {
+    const countryResult = movie.release_dates.results.find(r => r.iso_3166_1 === country);
+    if (countryResult) {
+      const certs = adultCertifications[country] || [];
+      const hasCert = countryResult.release_dates.some(rd => 
+        certs.includes(rd.certification)
+      );
+      if (hasCert) return true;
+    }
+  }
+  
+  // Also check any other country for adult certification
+  for (const result of movie.release_dates.results) {
+    const certs = adultCertifications[result.iso_3166_1] || [];
+    if (result.release_dates.some(rd => certs.includes(rd.certification))) {
+      return true;
+    }
+  }
+  
+  return false;
 };
 
 export const searchMovies = async (query: string, page = 1): Promise<MoviesResponse> => {
@@ -271,8 +337,52 @@ export const searchMulti = async (query: string, page = 1): Promise<MoviesRespon
 export const fetchTVDetails = async (tvId: number): Promise<TVDetails> => {
   return tmdbFetch<TVDetails>(`/tv/${tvId}`, { 
     language: 'en-US',
-    append_to_response: 'videos,credits'
+    append_to_response: 'videos,credits,content_ratings'
   });
+};
+
+// Check if TV show has 18+ content rating
+export const isTVAdultRated = (tvShow: TVDetails): boolean => {
+  if (!tvShow.content_ratings?.results) return false;
+  
+  // Adult TV ratings by country
+  const adultTVRatings: Record<string, string[]> = {
+    US: ['TV-MA'],
+    GB: ['18', 'R18'],
+    DE: ['18', '16'],
+    FR: ['18', '-18'],
+    AU: ['MA15+', 'R18+', 'X18+'],
+    BR: ['18'],
+    CA: ['18+', 'A'],
+    ES: ['18'],
+    IT: ['VM18'],
+    JP: ['R18+'],
+    KR: ['18'],
+    NL: ['18'],
+  };
+  
+  // Check US first, then other countries
+  const priorityCountries = ['US', 'GB', 'CA', 'AU', 'DE', 'FR'];
+  
+  for (const country of priorityCountries) {
+    const countryRating = tvShow.content_ratings.results.find(r => r.iso_3166_1 === country);
+    if (countryRating) {
+      const ratings = adultTVRatings[country] || [];
+      if (ratings.includes(countryRating.rating)) {
+        return true;
+      }
+    }
+  }
+  
+  // Also check any other country
+  for (const result of tvShow.content_ratings.results) {
+    const ratings = adultTVRatings[result.iso_3166_1] || [];
+    if (ratings.includes(result.rating)) {
+      return true;
+    }
+  }
+  
+  return false;
 };
 
 export const fetchSimilarTV = async (tvId: number): Promise<MoviesResponse> => {

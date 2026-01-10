@@ -26,6 +26,7 @@ import {
   fetchMovieDetails,
   fetchSimilarMovies,
   getImageUrl,
+  isAdultRated,
 } from "@/lib/tmdb";
 import { getMovieProgress } from "@/lib/watchHistory";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,9 +61,11 @@ const MovieDetail = () => {
     window.scrollTo(0, 0);
   }, [movieId]);
 
+  // Check if content is adult-rated using certification data
+  const isAdult = movie ? isAdultRated(movie) : false;
+
   const handlePlay = () => {
-    // Check if content is adult-rated (18+)
-    if (movie?.adult) {
+    if (isAdult) {
       setShowAgeVerification(true);
     } else {
       setIsPlaying(true);
@@ -192,7 +195,7 @@ const MovieDetail = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl md:text-5xl font-bold">{movie.title}</h1>
-                {movie.adult && (
+                {isAdult && (
                   <Badge variant="destructive" className="gap-1 text-sm">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     18+
