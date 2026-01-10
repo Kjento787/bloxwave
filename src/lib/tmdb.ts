@@ -140,11 +140,13 @@ export interface EmbedServer {
 }
 
 export const EMBED_SERVERS: EmbedServer[] = [
-  { id: "2embed", name: "Server 1 (2Embed)", hasSubtitles: true },
-  { id: "vidsrc", name: "Server 2 (VidSrc)", hasSubtitles: true },
-  { id: "vidsrcpro", name: "Server 3 (VidSrc Pro)", hasSubtitles: true },
-  { id: "embedsu", name: "Server 4 (Embed.su)", hasSubtitles: false },
-  { id: "autoembed", name: "Server 5 (AutoEmbed)", hasSubtitles: true },
+  { id: "vidsrcxyz", name: "Server 1 (VidSrc.xyz)", hasSubtitles: true },
+  { id: "2embed", name: "Server 2 (2Embed)", hasSubtitles: true },
+  { id: "vidsrc", name: "Server 3 (VidSrc)", hasSubtitles: true },
+  { id: "vidsrcpro", name: "Server 4 (VidSrc Pro)", hasSubtitles: true },
+  { id: "embedsu", name: "Server 5 (Embed.su)", hasSubtitles: false },
+  { id: "autoembed", name: "Server 6 (AutoEmbed)", hasSubtitles: true },
+  { id: "multiembed", name: "Server 7 (MultiEmbed)", hasSubtitles: true },
 ];
 
 export const getEmbedUrl = (
@@ -152,12 +154,17 @@ export const getEmbedUrl = (
   type: "movie" | "tv" = "movie", 
   season?: number, 
   episode?: number,
-  serverId: string = "2embed"
+  serverId: string = "vidsrcxyz"
 ): string => {
   const s = season ?? 1;
   const e = episode ?? 1;
   
   switch (serverId) {
+    case "vidsrcxyz":
+      return type === "tv" 
+        ? `https://vidsrc.xyz/embed/tv/${id}/${s}-${e}`
+        : `https://vidsrc.xyz/embed/movie/${id}`;
+    
     case "vidsrc":
       return type === "tv" 
         ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`
@@ -177,6 +184,11 @@ export const getEmbedUrl = (
       return type === "tv"
         ? `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`
         : `https://player.autoembed.cc/embed/movie/${id}`;
+    
+    case "multiembed":
+      return type === "tv"
+        ? `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`
+        : `https://multiembed.mov/?video_id=${id}&tmdb=1`;
     
     case "2embed":
     default:

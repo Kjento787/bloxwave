@@ -32,7 +32,7 @@ export const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedServer, setSelectedServer] = useState("2embed");
+  const [selectedServer, setSelectedServer] = useState("vidsrcxyz");
   const playerRef = useRef<HTMLDivElement>(null);
 
   const currentServer = EMBED_SERVERS.find(s => s.id === selectedServer) || EMBED_SERVERS[0];
@@ -149,7 +149,7 @@ export const VideoPlayer = ({
           </div>
         )}
 
-        {/* Iframe with restricted permissions */}
+        {/* Iframe with permissions for all content types */}
         <iframe
           key={selectedServer}
           src={embedUrl}
@@ -158,14 +158,13 @@ export const VideoPlayer = ({
             isLoading ? "opacity-0" : "opacity-100"
           )}
           allowFullScreen
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-          referrerPolicy="origin"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write"
+          referrerPolicy="no-referrer-when-downgrade"
           onLoad={() => setIsLoading(false)}
           style={{ 
             border: 'none',
             display: 'block'
           }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock allow-popups-to-escape-sandbox"
         />
 
         {/* Overlay to block popups/ads on edges */}
