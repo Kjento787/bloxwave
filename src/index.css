@@ -258,4 +258,50 @@
       max-height: 20rem;
     }
   }
+
+  /* Video Player Ad Blocking CSS */
+  .video-player-container {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .video-player-container iframe {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Block common ad overlay patterns */
+  .video-player-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Aggressive ad element hiding via CSS injection approach */
+  .ad-blocker-active [class*="ad-"],
+  .ad-blocker-active [class*="ads-"],
+  .ad-blocker-active [class*="popup"],
+  .ad-blocker-active [class*="overlay"],
+  .ad-blocker-active [id*="ad-"],
+  .ad-blocker-active [id*="ads-"],
+  .ad-blocker-active [id*="popup"],
+  .ad-blocker-active [data-ad],
+  .ad-blocker-active [data-ads],
+  .ad-blocker-active .adsbygoogle,
+  .ad-blocker-active .ad-container,
+  .ad-blocker-active .advertisement,
+  .ad-blocker-active .sponsored {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
 }
