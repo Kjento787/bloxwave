@@ -47,6 +47,7 @@ const TVDetail = () => {
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
+  const [playerKey, setPlayerKey] = useState(0); // Force re-render on episode change
 
   const { data: tvShow, isLoading } = useQuery({
     queryKey: ["tv", tvId],
@@ -106,6 +107,43 @@ const TVDetail = () => {
     setIsPlaying(true);
   };
 
+  // Handle next episode navigation
+  const handleNextEpisode = () => {
+    if (selectedEpisode < episodeCount) {
+      setSelectedEpisode(prev => prev + 1);
+      setPlayerKey(prev => prev + 1); // Force player to reload with new episode
+    } else if (tvShow?.seasons) {
+      // Move to next season if available
+      const validSeasons = tvShow.seasons.filter(s => s.season_number > 0);
+      const currentSeasonIndex = validSeasons.findIndex(s => s.season_number === selectedSeason);
+      if (currentSeasonIndex < validSeasons.length - 1) {
+        const nextSeason = validSeasons[currentSeasonIndex + 1];
+        setSelectedSeason(nextSeason.season_number);
+        setSelectedEpisode(1);
+        setPlayerKey(prev => prev + 1);
+      }
+    }
+  };
+
+  // Handle previous episode navigation
+  const handlePreviousEpisode = () => {
+    if (selectedEpisode > 1) {
+      setSelectedEpisode(prev => prev - 1);
+      setPlayerKey(prev => prev + 1);
+    } else if (tvShow?.seasons) {
+      // Move to previous season if available
+      const validSeasons = tvShow.seasons.filter(s => s.season_number > 0);
+      const currentSeasonIndex = validSeasons.findIndex(s => s.season_number === selectedSeason);
+      if (currentSeasonIndex > 0) {
+        const prevSeason = validSeasons[currentSeasonIndex - 1];
+        setSelectedSeason(prevSeason.season_number);
+        const prevSeasonEpisodes = prevSeason.episode_count || 1;
+        setSelectedEpisode(prevSeasonEpisodes);
+        setPlayerKey(prev => prev + 1);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -154,13 +192,17 @@ const TVDetail = () => {
       {/* Video Player with Ad Blocking & Server Selection */}
       {isPlaying && (
         <VideoPlayer
+          key={playerKey}
           contentId={tvShow.id}
           contentType="tv"
           title={tvShow.name}
           subtitle={`Season ${selectedSeason}, Episode ${selectedEpisode}`}
           season={selectedSeason || 1}
           episode={selectedEpisode}
+          totalEpisodes={episodeCount}
           onClose={() => setIsPlaying(false)}
+          onNextEpisode={handleNextEpisode}
+          onPreviousEpisode={handlePreviousEpisode}
         />
       )}
 
