@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Maximize, Minimize, ShieldCheck, Server, Captions, AlertTriangle } from "lucide-react";
+import { X, Maximize, Minimize, ShieldCheck, Server, Captions, AlertTriangle, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EMBED_SERVERS, getEmbedUrl } from "@/lib/tmdb";
@@ -18,7 +18,10 @@ interface VideoPlayerProps {
   subtitle?: string;
   season?: number;
   episode?: number;
+  totalEpisodes?: number;
   onClose: () => void;
+  onNextEpisode?: () => void;
+  onPreviousEpisode?: () => void;
 }
 
 export const VideoPlayer = ({ 
@@ -28,7 +31,10 @@ export const VideoPlayer = ({
   subtitle, 
   season, 
   episode,
-  onClose 
+  totalEpisodes,
+  onClose,
+  onNextEpisode,
+  onPreviousEpisode
 }: VideoPlayerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -191,6 +197,34 @@ export const VideoPlayer = ({
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Episode Navigation for TV Shows */}
+          {contentType === "tv" && (
+            <div className="flex items-center gap-1 mr-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onPreviousEpisode}
+                disabled={!onPreviousEpisode || episode === 1}
+                className="hover:bg-secondary gap-1"
+                title="Previous Episode"
+              >
+                <SkipBack className="h-4 w-4" />
+                <span className="hidden sm:inline">Prev</span>
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={onNextEpisode}
+                disabled={!onNextEpisode || (totalEpisodes !== undefined && episode !== undefined && episode >= totalEpisodes)}
+                className="gap-1"
+                title="Next Episode"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <SkipForward className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           
           <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="hover:bg-secondary">
             {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
