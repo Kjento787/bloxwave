@@ -43,7 +43,9 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
       to={detailPath}
       className={cn(
         "group relative block rounded-xl overflow-hidden bg-card transition-all duration-300",
-        "hover:scale-105 hover:shadow-card hover:z-10",
+        "hover:scale-[1.02] hover:shadow-glow hover:z-10",
+        "focus-visible:scale-[1.02] focus-visible:shadow-glow focus-visible:z-10",
+        "active:scale-100",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -100,10 +102,11 @@ export const MovieCard = ({ movie, className, showProgress, progress }: MovieCar
         <div
           className={cn(
             "absolute inset-0 flex flex-col items-center justify-end p-4 gap-2",
-            "opacity-0 group-hover:opacity-100 transition-all duration-300"
+            "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-all duration-300",
+            "translate-y-2 group-hover:translate-y-0 group-focus-visible:translate-y-0"
           )}
         >
-          <Button size="sm" variant="hero" className="w-full">
+          <Button size="sm" variant="hero" className="w-full shadow-lg">
             <Play className="h-4 w-4 fill-current" />
             Watch Now
           </Button>
