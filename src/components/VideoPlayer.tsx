@@ -49,12 +49,33 @@ export const VideoPlayer = ({
   const toggleFullscreen = async () => {
     if (!playerRef.current) return;
 
-    if (!document.fullscreenElement) {
-      await playerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen();
-      setIsFullscreen(false);
+    try {
+      if (!document.fullscreenElement) {
+        // Try different fullscreen methods for cross-browser support
+        if (playerRef.current.requestFullscreen) {
+          await playerRef.current.requestFullscreen();
+        } else if ((playerRef.current as any).webkitRequestFullscreen) {
+          await (playerRef.current as any).webkitRequestFullscreen();
+        } else if ((playerRef.current as any).mozRequestFullScreen) {
+          await (playerRef.current as any).mozRequestFullScreen();
+        } else if ((playerRef.current as any).msRequestFullscreen) {
+          await (playerRef.current as any).msRequestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).mozCancelFullScreen) {
+          await (document as any).mozCancelFullScreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
     }
   };
 
@@ -219,13 +240,16 @@ export const VideoPlayer = ({
             "w-full h-full transition-opacity duration-300",
             isLoading ? "opacity-0" : "opacity-100"
           )}
-          allowFullScreen
+          allowFullScreen={true}
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write"
           referrerPolicy="no-referrer"
           onLoad={() => setIsLoading(false)}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups"
           style={{ 
             border: 'none',
-            display: 'block'
+            display: 'block',
+            width: '100%',
+            height: '100%'
           }}
         />
 

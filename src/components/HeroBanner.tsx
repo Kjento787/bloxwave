@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { Movie, getImageUrl } from "@/lib/tmdb";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { Badge } from "./ui/badge";
 
 interface HeroBannerProps {
   movies: Movie[];
@@ -14,19 +15,34 @@ export const HeroBanner = ({ movies }: HeroBannerProps) => {
   const featuredMovies = movies.slice(0, 5);
   const currentMovie = featuredMovies[currentIndex];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
-    }, 8000);
-    return () => clearInterval(timer);
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
   }, [featuredMovies.length]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length);
+  }, [featuredMovies.length]);
+
+  // Auto-advance timer
+  useEffect(() => {
+    const timer = setInterval(goToNext, 8000);
+    return () => clearInterval(timer);
+  }, [goToNext]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') goToPrev();
+      if (e.key === 'ArrowRight') goToNext();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToNext, goToPrev]);
 
   if (!currentMovie) return null;
 
-  const backdropUrl = getImageUrl(currentMovie.backdrop_path, "original");
-
   return (
-    <section className="relative h-[70vh] md:h-[85vh] overflow-hidden">
+    <section className="relative h-[70vh] md:h-[85vh] overflow-hidden group">
       {/* Background Images */}
       {featuredMovies.map((movie, index) => (
         <div
@@ -57,12 +73,17 @@ export const HeroBanner = ({ movies }: HeroBannerProps) => {
             </h1>
 
             {/* Meta */}
-            <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <span className="text-yellow-500">★</span>
+            <div className="flex items-center gap-3 mb-4 text-sm">
+              <Badge variant="secondary" className="gap-1 bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+                <span>★</span>
                 {currentMovie.vote_average.toFixed(1)}
-              </span>
-              <span>{currentMovie.release_date?.split("-")[0]}</span>
+              </Badge>
+              <Badge variant="outline">
+                {currentMovie.release_date?.split("-")[0]}
+              </Badge>
+              {currentMovie.adult && (
+                <Badge variant="destructive">18+</Badge>
+              )}
             </div>
 
             {/* Overview */}
@@ -109,22 +130,18 @@ export const HeroBanner = ({ movies }: HeroBannerProps) => {
       <Button
         variant="glass"
         size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full hidden md:flex"
-        onClick={() =>
-          setCurrentIndex(
-            (prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length
-          )
-        }
+        className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:scale-110"
+        onClick={goToPrev}
+        aria-label="Previous movie"
       >
         <ChevronLeft className="h-6 w-6" />
       </Button>
       <Button
         variant="glass"
         size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full hidden md:flex"
-        onClick={() =>
-          setCurrentIndex((prev) => (prev + 1) % featuredMovies.length)
-        }
+        className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:scale-110"
+        onClick={goToNext}
+        aria-label="Next movie"
       >
         <ChevronRight className="h-6 w-6" />
       </Button>
