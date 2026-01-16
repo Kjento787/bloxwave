@@ -200,9 +200,19 @@ const TVDetail = () => {
           season={selectedSeason || 1}
           episode={selectedEpisode}
           totalEpisodes={episodeCount}
+          totalSeasons={tvShow.seasons?.filter(s => s.season_number > 0).length || 1}
           onClose={() => setIsPlaying(false)}
           onNextEpisode={handleNextEpisode}
           onPreviousEpisode={handlePreviousEpisode}
+          onEpisodeSelect={(ep) => {
+            setSelectedEpisode(ep);
+            setPlayerKey(prev => prev + 1);
+          }}
+          onSeasonSelect={(s) => {
+            setSelectedSeason(s);
+            setSelectedEpisode(1);
+            setPlayerKey(prev => prev + 1);
+          }}
         />
       )}
 

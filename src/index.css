@@ -244,6 +244,58 @@
     display: none;
   }
 
+  /* Progress animation for hero banner dots */
+  @keyframes progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .animate-progress {
+    animation: progress linear forwards;
+    transform-origin: left;
+  }
+
+  /* Text shadow for better readability on images */
+  .text-shadow-lg {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Pulse glow effect */
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+    to {
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+    }
+  }
+
+  /* Bounce animation for interactive elements */
+  .hover-bounce {
+    transition: transform 0.2s ease;
+  }
+
+  .hover-bounce:hover {
+    animation: bounce 0.5s ease;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
   /* TV Screen Optimizations - for screens 1920px and larger */
   @media (min-width: 1920px) {
     .tv\:text-lg {

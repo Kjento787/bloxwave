@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Maximize, Minimize, ShieldCheck, Server, Captions, AlertTriangle, SkipForward, SkipBack } from "lucide-react";
+import { X, Maximize, Minimize, ShieldCheck, Server, Captions, AlertTriangle, SkipForward, SkipBack, ChevronDown, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EMBED_SERVERS, getEmbedUrl } from "@/lib/tmdb";
@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface VideoPlayerProps {
   contentId: number;
@@ -19,9 +25,12 @@ interface VideoPlayerProps {
   season?: number;
   episode?: number;
   totalEpisodes?: number;
+  totalSeasons?: number;
   onClose: () => void;
   onNextEpisode?: () => void;
   onPreviousEpisode?: () => void;
+  onEpisodeSelect?: (episode: number) => void;
+  onSeasonSelect?: (season: number) => void;
 }
 
 export const VideoPlayer = ({ 
@@ -29,19 +38,25 @@ export const VideoPlayer = ({
   contentType, 
   title, 
   subtitle, 
-  season, 
+  season,
   episode,
   totalEpisodes,
+  totalSeasons,
   onClose,
   onNextEpisode,
-  onPreviousEpisode
+  onPreviousEpisode,
+  onEpisodeSelect,
+  onSeasonSelect
 }: VideoPlayerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedServer, setSelectedServer] = useState("vidsrcxyz");
   const [popupBlocked, setPopupBlocked] = useState(0);
+  const [showEpisodeBar, setShowEpisodeBar] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
   const playerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
 
   const currentServer = EMBED_SERVERS.find(s => s.id === selectedServer) || EMBED_SERVERS[0];
   const embedUrl = getEmbedUrl(contentId, contentType, season, episode, selectedServer);
@@ -52,12 +67,33 @@ export const VideoPlayer = ({
     setPopupBlocked(0);
   };
 
+  // Auto-hide controls
+  const resetHideTimer = useCallback(() => {
+    setControlsVisible(true);
+    if (hideControlsTimer.current) {
+      clearTimeout(hideControlsTimer.current);
+    }
+    hideControlsTimer.current = setTimeout(() => {
+      if (!showEpisodeBar) {
+        setControlsVisible(false);
+      }
+    }, 3000);
+  }, [showEpisodeBar]);
+
+  useEffect(() => {
+    resetHideTimer();
+    return () => {
+      if (hideControlsTimer.current) {
+        clearTimeout(hideControlsTimer.current);
+      }
+    };
+  }, [resetHideTimer]);
+
   const toggleFullscreen = async () => {
     if (!playerRef.current) return;
 
     try {
       if (!document.fullscreenElement) {
-        // Try different fullscreen methods for cross-browser support
         if (playerRef.current.requestFullscreen) {
           await playerRef.current.requestFullscreen();
         } else if ((playerRef.current as any).webkitRequestFullscreen) {
@@ -104,10 +140,8 @@ export const VideoPlayer = ({
   useEffect(() => {
     const blockPopups = (e: Event) => {
       const target = e.target as HTMLElement;
-      // Block clicks that might open new windows
       if (target.tagName === 'A' && (target as HTMLAnchorElement).target === '_blank') {
         const href = (target as HTMLAnchorElement).href;
-        // Allow legitimate links, block ad-looking ones
         if (href && (href.includes('ad') || href.includes('click') || href.includes('track') || href.includes('redirect'))) {
           e.preventDefault();
           e.stopPropagation();
@@ -120,15 +154,6 @@ export const VideoPlayer = ({
     return () => document.removeEventListener('click', blockPopups, true);
   }, []);
 
-  // Handle beforeunload to prevent navigation away
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // This helps prevent some ad redirects
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -137,16 +162,35 @@ export const VideoPlayer = ({
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  // Handle escape key to close
+  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      resetHideTimer();
+      
       if (e.key === "Escape" && !document.fullscreenElement) {
         onClose();
+      }
+      // Arrow keys for episode navigation
+      if (contentType === "tv") {
+        if (e.key === "ArrowRight" && e.shiftKey && onNextEpisode) {
+          onNextEpisode();
+        }
+        if (e.key === "ArrowLeft" && e.shiftKey && onPreviousEpisode) {
+          onPreviousEpisode();
+        }
+      }
+      // Toggle episode bar
+      if (e.key === "e" || e.key === "E") {
+        setShowEpisodeBar(prev => !prev);
+      }
+      // Fullscreen toggle
+      if (e.key === "f" || e.key === "F") {
+        toggleFullscreen();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, onNextEpisode, onPreviousEpisode, contentType, resetHideTimer]);
 
   // Apply ad-blocker class to body when mounted
   useEffect(() => {
@@ -156,111 +200,98 @@ export const VideoPlayer = ({
     };
   }, []);
 
+  const canGoPrevious = contentType === "tv" && episode !== undefined && (episode > 1 || (season !== undefined && season > 1));
+  const canGoNext = contentType === "tv" && episode !== undefined && totalEpisodes !== undefined && 
+    (episode < totalEpisodes || (totalSeasons !== undefined && season !== undefined && season < totalSeasons));
+
   return (
-    <div ref={playerRef} className="fixed inset-0 z-50 bg-background flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary text-xs">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            <span>Ad-Protected</span>
-            {popupBlocked > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 bg-primary/20 rounded text-[10px] font-medium">
-                {popupBlocked} blocked
-              </span>
-            )}
+    <div 
+      ref={playerRef} 
+      className="fixed inset-0 z-50 bg-black flex flex-col"
+      onMouseMove={resetHideTimer}
+    >
+      {/* Top Header - Auto-hide */}
+      <div className={cn(
+        "absolute top-0 left-0 right-0 z-20 transition-all duration-300",
+        controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+      )}>
+        <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-b from-black/90 via-black/60 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Protected</span>
+              {popupBlocked > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-emerald-500/30 rounded-full text-[10px] font-bold">
+                  {popupBlocked}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-sm md:text-base font-semibold text-white line-clamp-1">{title}</h2>
+              {subtitle && (
+                <p className="text-xs text-white/60">{subtitle}</p>
+              )}
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">{title}</h2>
-            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Server Selector */}
-          <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-muted-foreground" />
-            <Select value={selectedServer} onValueChange={handleServerChange}>
-              <SelectTrigger className="w-[180px] h-9 bg-background/50 border-border/50">
-                <SelectValue placeholder="Select server" />
-              </SelectTrigger>
-              <SelectContent>
+          
+          <div className="flex items-center gap-1 md:gap-2">
+            {/* Server Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-white/80 hover:text-white hover:bg-white/10">
+                  <Server className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">{currentServer.name}</span>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
                 {EMBED_SERVERS.map((server) => (
-                  <SelectItem key={server.id} value={server.id}>
-                    <div className="flex items-center gap-2">
+                  <DropdownMenuItem 
+                    key={server.id} 
+                    onClick={() => handleServerChange(server.id)}
+                    className={cn(selectedServer === server.id && "bg-primary/10 text-primary")}
+                  >
+                    <div className="flex items-center justify-between w-full">
                       <span>{server.name}</span>
                       {server.hasSubtitles && (
                         <Captions className="h-3.5 w-3.5 text-primary" />
                       )}
                     </div>
-                  </SelectItem>
+                  </DropdownMenuItem>
                 ))}
-              </SelectContent>
-            </Select>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleFullscreen} 
+              className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10"
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose} 
+              className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-          
-          {/* Episode Navigation for TV Shows */}
-          {contentType === "tv" && (
-            <div className="flex items-center gap-1 mr-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onPreviousEpisode}
-                disabled={!onPreviousEpisode || episode === 1}
-                className="hover:bg-secondary gap-1"
-                title="Previous Episode"
-              >
-                <SkipBack className="h-4 w-4" />
-                <span className="hidden sm:inline">Prev</span>
-              </Button>
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={onNextEpisode}
-                disabled={!onNextEpisode || (totalEpisodes !== undefined && episode !== undefined && episode >= totalEpisodes)}
-                className="gap-1"
-                title="Next Episode"
-              >
-                <span className="hidden sm:inline">Next</span>
-                <SkipForward className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-          
-          <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="hover:bg-secondary">
-            {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-          </Button>
-          <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-secondary">
-            <X className="h-6 w-6" />
-          </Button>
         </div>
       </div>
 
-      {/* Subtitle indicator */}
-      <div className="px-4 py-2 bg-background/60 border-b border-border/30 flex items-center gap-2 text-sm">
-        <span className="text-muted-foreground">Current:</span>
-        <span className="font-medium">{currentServer.name}</span>
-        {currentServer.hasSubtitles ? (
-          <span className="flex items-center gap-1 text-primary text-xs">
-            <Captions className="h-3.5 w-3.5" />
-            Subtitles available
-          </span>
-        ) : (
-          <span className="text-muted-foreground text-xs">No subtitles</span>
-        )}
-        <span className="text-muted-foreground ml-auto text-xs flex items-center gap-1">
-          <AlertTriangle className="h-3 w-3" />
-          If ads appear, try a different server
-        </span>
-      </div>
-
-      {/* Video Container with Ad Blocking */}
+      {/* Video Container */}
       <div className="flex-1 w-full relative overflow-hidden video-player-container">
         {/* Loading state */}
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-              <p className="text-muted-foreground">Loading {currentServer.name}...</p>
+              <div className="relative">
+                <div className="animate-spin rounded-full h-12 w-12 border-3 border-primary/30 border-t-primary" />
+              </div>
+              <p className="text-white/60 text-sm">Loading {currentServer.name}...</p>
             </div>
           </div>
         )}
@@ -268,10 +299,10 @@ export const VideoPlayer = ({
         {/* Iframe */}
         <iframe
           ref={iframeRef}
-          key={selectedServer}
+          key={`${selectedServer}-${season}-${episode}`}
           src={embedUrl}
           className={cn(
-            "w-full h-full transition-opacity duration-300",
+            "w-full h-full transition-opacity duration-500",
             isLoading ? "opacity-0" : "opacity-100"
           )}
           allowFullScreen={true}
@@ -287,28 +318,165 @@ export const VideoPlayer = ({
           }}
         />
 
-        {/* Click interceptor overlays on edges - blocks edge popup triggers */}
+        {/* Click interceptor overlays */}
         <div 
           className="absolute top-0 left-0 right-0 h-3 bg-transparent cursor-default" 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
         />
         <div 
           className="absolute bottom-0 left-0 right-0 h-3 bg-transparent cursor-default" 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
         />
         <div 
           className="absolute top-0 bottom-0 left-0 w-3 bg-transparent cursor-default" 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
         />
         <div 
           className="absolute top-0 bottom-0 right-0 w-3 bg-transparent cursor-default" 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
         />
       </div>
+
+      {/* Bottom Episode Navigation Bar - TV Shows Only */}
+      {contentType === "tv" && (
+        <div className={cn(
+          "absolute bottom-0 left-0 right-0 z-20 transition-all duration-300",
+          controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
+        )}>
+          <div className="bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-8 pb-4 px-4">
+            {/* Episode Quick Navigation */}
+            <div className="flex items-center justify-between gap-4">
+              {/* Previous Episode */}
+              <Button 
+                variant="ghost" 
+                size="lg"
+                onClick={onPreviousEpisode}
+                disabled={!canGoPrevious}
+                className={cn(
+                  "h-12 px-4 gap-2 text-white transition-all duration-200",
+                  canGoPrevious 
+                    ? "hover:bg-white/10 hover:scale-105" 
+                    : "opacity-30 cursor-not-allowed"
+                )}
+              >
+                <SkipBack className="h-5 w-5" />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+
+              {/* Center - Episode Info & Quick Select */}
+              <div className="flex-1 flex flex-col items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Season Select */}
+                  {totalSeasons && totalSeasons > 1 && onSeasonSelect && (
+                    <Select 
+                      value={String(season)} 
+                      onValueChange={(v) => onSeasonSelect(Number(v))}
+                    >
+                      <SelectTrigger className="w-28 h-9 bg-white/10 border-white/20 text-white text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: totalSeasons }, (_, i) => i + 1).map((s) => (
+                          <SelectItem key={s} value={String(s)}>
+                            Season {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
+                  {/* Episode Select */}
+                  {totalEpisodes && onEpisodeSelect && (
+                    <Select 
+                      value={String(episode)} 
+                      onValueChange={(v) => onEpisodeSelect(Number(v))}
+                    >
+                      <SelectTrigger className="w-32 h-9 bg-white/10 border-white/20 text-white text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: totalEpisodes }, (_, i) => i + 1).map((ep) => (
+                          <SelectItem key={ep} value={String(ep)}>
+                            Episode {ep}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                
+                {/* Episode Progress Bar */}
+                {totalEpisodes && episode && (
+                  <div className="w-full max-w-md">
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(totalEpisodes, 20) }, (_, i) => i + 1).map((ep) => (
+                        <button
+                          key={ep}
+                          onClick={() => onEpisodeSelect?.(ep)}
+                          className={cn(
+                            "flex-1 h-1.5 rounded-full transition-all duration-200",
+                            ep === episode 
+                              ? "bg-primary scale-y-150" 
+                              : ep < episode 
+                                ? "bg-primary/50 hover:bg-primary/70" 
+                                : "bg-white/20 hover:bg-white/40"
+                          )}
+                          title={`Episode ${ep}`}
+                        />
+                      ))}
+                    </div>
+                    {totalEpisodes > 20 && (
+                      <p className="text-center text-white/40 text-xs mt-1">
+                        Showing first 20 of {totalEpisodes} episodes
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Next Episode */}
+              <Button 
+                variant="default"
+                size="lg"
+                onClick={onNextEpisode}
+                disabled={!canGoNext}
+                className={cn(
+                  "h-12 px-6 gap-2 transition-all duration-200",
+                  canGoNext 
+                    ? "bg-primary hover:bg-primary/90 hover:scale-105 shadow-lg shadow-primary/30" 
+                    : "opacity-30 cursor-not-allowed"
+                )}
+              >
+                <span className="hidden sm:inline">Next Episode</span>
+                <span className="sm:hidden">Next</span>
+                <SkipForward className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Keyboard Shortcuts Hint */}
+            <div className="flex justify-center mt-3">
+              <div className="flex items-center gap-4 text-white/30 text-xs">
+                <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">Shift</kbd> + <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">←→</kbd> Navigate</span>
+                <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">F</kbd> Fullscreen</span>
+                <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">Esc</kbd> Close</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Server Notice - Only for movies */}
+      {contentType === "movie" && (
+        <div className={cn(
+          "absolute bottom-4 left-1/2 -translate-x-1/2 z-20 transition-all duration-300",
+          controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/80 backdrop-blur-sm text-white/60 text-xs">
+            <AlertTriangle className="h-3 w-3" />
+            <span>If ads appear, try a different server</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
