@@ -125,6 +125,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_bans: {
+        Row: {
+          banned_at: string
+          banned_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          ip_address: string
+          is_permanent: boolean | null
+          reason: string
+        }
+        Insert: {
+          banned_at?: string
+          banned_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip_address: string
+          is_permanent?: boolean | null
+          reason: string
+        }
+        Update: {
+          banned_at?: string
+          banned_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string
+          is_permanent?: boolean | null
+          reason?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -197,6 +230,7 @@ export type Database = {
           banned_by: string | null
           expires_at: string | null
           id: string
+          ip_address: string | null
           is_permanent: boolean | null
           reason: string
           user_id: string
@@ -206,6 +240,7 @@ export type Database = {
           banned_by?: string | null
           expires_at?: string | null
           id?: string
+          ip_address?: string | null
           is_permanent?: boolean | null
           reason: string
           user_id: string
@@ -215,6 +250,7 @@ export type Database = {
           banned_by?: string | null
           expires_at?: string | null
           id?: string
+          ip_address?: string | null
           is_permanent?: boolean | null
           reason?: string
           user_id?: string
