@@ -13,7 +13,9 @@ import TVDetail from "./pages/TVDetail";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Banned from "./pages/Banned";
 import NotFound from "./pages/NotFound";
+import BanCheckWrapper from "./components/BanCheckWrapper";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,19 +32,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <HashRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/movies" element={<Movies />} />
-          <Route path="/genres" element={<Genres />} />
-          <Route path="/genre/:id" element={<GenreDetail />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/movie/:id" element={<MovieDetail />} />
-          <Route path="/tv/:id" element={<TVDetail />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <BanCheckWrapper>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/movies" element={<Movies />} />
+            <Route path="/genres" element={<Genres />} />
+            <Route path="/genre/:id" element={<GenreDetail />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/movie/:id" element={<MovieDetail />} />
+            <Route path="/tv/:id" element={<TVDetail />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/banned" element={<Banned />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BanCheckWrapper>
       </HashRouter>
     </TooltipProvider>
   </QueryClientProvider>
