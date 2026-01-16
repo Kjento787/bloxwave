@@ -97,6 +97,7 @@ interface UserBan {
   banned_at: string;
   expires_at: string | null;
   is_permanent: boolean;
+  ip_address: string | null;
 }
 
 interface Review {
@@ -313,21 +314,39 @@ const Admin = () => {
   });
 
   const banUserMutation = useMutation({
-    mutationFn: async ({ userId, reason, isPermanent }: { userId: string; reason: string; isPermanent: boolean }) => {
+    mutationFn: async ({ userId, reason, isPermanent, includeIpBan }: { userId: string; reason: string; isPermanent: boolean; includeIpBan?: boolean }) => {
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get the user's IP if IP ban is requested
+      let userIp: string | null = null;
+      if (includeIpBan) {
+        const { data: ipData } = await supabase.functions.invoke('get-client-ip');
+        userIp = ipData?.ip || null;
+      }
       
       const { error } = await supabase.from("user_bans").insert({
         user_id: userId,
         reason,
         banned_by: user?.id,
         is_permanent: isPermanent,
+        ip_address: userIp,
       });
 
       if (error) throw error;
+
+      // Also add to ip_bans table for stronger enforcement
+      if (userIp && includeIpBan) {
+        await supabase.from("ip_bans").upsert({
+          ip_address: userIp,
+          reason,
+          banned_by: user?.id,
+          is_permanent: isPermanent,
+        }, { onConflict: 'ip_address' });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-bans"] });
-      toast.success("User banned");
+      toast.success("User banned (including IP)");
       setBanReason("");
       setSelectedUserId(null);
     },
@@ -654,17 +673,30 @@ const Admin = () => {
                                   value={banReason}
                                   onChange={(e) => setBanReason(e.target.value)}
                                 />
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => banUserMutation.mutate({
+                                      userId: role.user_id,
+                                      reason: banReason,
+                                      isPermanent: true,
+                                      includeIpBan: false,
+                                    })}
+                                    disabled={!banReason.trim() || banUserMutation.isPending}
+                                  >
+                                    Account Ban Only
+                                  </Button>
                                   <Button
                                     variant="destructive"
                                     onClick={() => banUserMutation.mutate({
                                       userId: role.user_id,
                                       reason: banReason,
                                       isPermanent: true,
+                                      includeIpBan: true,
                                     })}
-                                    disabled={!banReason.trim()}
+                                    disabled={!banReason.trim() || banUserMutation.isPending}
                                   >
-                                    Permanent Ban
+                                    Ban Account + IP Address
                                   </Button>
                                 </div>
                               </DialogContent>

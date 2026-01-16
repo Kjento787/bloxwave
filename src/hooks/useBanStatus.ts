@@ -20,6 +20,26 @@ export const useBanStatus = () => {
 
   useEffect(() => {
     const checkBanStatus = async () => {
+      // First check IP ban via edge function
+      try {
+        const { data: ipBanData, error: ipBanError } = await supabase.functions.invoke('check-ip-ban');
+        
+        if (!ipBanError && ipBanData?.isBanned) {
+          console.log('User is IP banned');
+          setBanStatus({
+            isBanned: true,
+            reason: ipBanData.reason,
+            expiresAt: ipBanData.expiresAt,
+            isPermanent: ipBanData.isPermanent,
+            isLoading: false,
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking IP ban:', error);
+      }
+
+      // Then check user-specific ban
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
