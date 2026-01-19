@@ -128,6 +128,7 @@ const Admin = () => {
   const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [searchEmail, setSearchEmail] = useState("");
+  const [searchAllUsers, setSearchAllUsers] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<AppRole>("user");
   const [banReason, setBanReason] = useState("");
@@ -428,6 +429,21 @@ const Admin = () => {
     role.email?.toLowerCase().includes(searchEmail.toLowerCase())
   );
 
+  const filteredProfiles = profiles?.filter((profile) =>
+    profile.email?.toLowerCase().includes(searchAllUsers.toLowerCase()) ||
+    profile.display_name?.toLowerCase().includes(searchAllUsers.toLowerCase())
+  );
+
+  // Get role for a user
+  const getUserRole = (userId: string) => {
+    return userRoles?.find(r => r.user_id === userId)?.role;
+  };
+
+  // Check if user is banned
+  const isUserBanned = (userId: string) => {
+    return bans?.some(b => b.user_id === userId);
+  };
+
   const getRoleBadgeVariant = (role: AppRole) => {
     switch (role) {
       case "admin":
@@ -722,6 +738,137 @@ const Admin = () => {
                     </TableBody>
                   </Table>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* All Users */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  All Users ({profiles?.length || 0})
+                </CardTitle>
+                <CardDescription>View all registered users on the platform</CardDescription>
+                <div className="relative mt-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by email or name..."
+                    value={searchAllUsers}
+                    onChange={(e) => setSearchAllUsers(e.target.value)}
+                    className="pl-10 max-w-sm"
+                  />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProfiles?.map((profile) => {
+                      const userRole = getUserRole(profile.id);
+                      const banned = isUserBanned(profile.id);
+                      return (
+                        <TableRow key={profile.id} className={banned ? "opacity-50" : ""}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium">
+                                {profile.display_name?.[0]?.toUpperCase() || profile.email?.[0]?.toUpperCase() || "?"}
+                              </div>
+                              <span className="font-medium">{profile.display_name || "No name"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{profile.email}</TableCell>
+                          <TableCell>
+                            {userRole ? (
+                              <Badge variant={getRoleBadgeVariant(userRole)} className="gap-1">
+                                {getRoleIcon(userRole)}
+                                {userRole}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">No role</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{format(new Date(profile.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell>
+                            {banned ? (
+                              <Badge variant="destructive">Banned</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-green-500 border-green-500/50">Active</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setSelectedUserId(profile.id)}
+                                  disabled={banned}
+                                >
+                                  <Ban className="h-4 w-4 text-yellow-500" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Ban User</DialogTitle>
+                                  <DialogDescription>
+                                    Ban {profile.email} from the platform
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <Textarea
+                                  placeholder="Reason for ban..."
+                                  value={banReason}
+                                  onChange={(e) => setBanReason(e.target.value)}
+                                />
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => banUserMutation.mutate({
+                                      userId: profile.id,
+                                      reason: banReason,
+                                      isPermanent: true,
+                                      includeIpBan: false,
+                                    })}
+                                    disabled={!banReason.trim() || banUserMutation.isPending}
+                                  >
+                                    Account Ban Only
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => banUserMutation.mutate({
+                                      userId: profile.id,
+                                      reason: banReason,
+                                      isPermanent: true,
+                                      includeIpBan: true,
+                                    })}
+                                    disabled={!banReason.trim() || banUserMutation.isPending}
+                                  >
+                                    Ban Account + IP Address
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {(!filteredProfiles || filteredProfiles.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          No users found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
 
