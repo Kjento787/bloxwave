@@ -16,6 +16,10 @@ import Admin from "./pages/Admin";
 import Banned from "./pages/Banned";
 import NotFound from "./pages/NotFound";
 import BanCheckWrapper from "./components/BanCheckWrapper";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiePolicy from "./pages/CookiePolicy";
+import DMCA from "./pages/DMCA";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +49,10 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/banned" element={<Banned />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/dmca" element={<DMCA />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BanCheckWrapper>

@@ -94,19 +94,25 @@ export const Footer = () => {
           {/* Legal */}
           <div>
             <h4 className="font-semibold mb-4 text-foreground">Legal</h4>
-            <ul className="space-y-2.5 text-sm text-muted-foreground">
-              <li>
-                <span className="hover:text-primary transition-colors cursor-pointer">Terms of Service</span>
-              </li>
-              <li>
-                <span className="hover:text-primary transition-colors cursor-pointer">Privacy Policy</span>
-              </li>
-              <li>
-                <span className="hover:text-primary transition-colors cursor-pointer">Cookie Policy</span>
-              </li>
-              <li>
-                <span className="hover:text-primary transition-colors cursor-pointer">DMCA</span>
-              </li>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                { to: "/terms", label: "Terms of Service" },
+                { to: "/privacy", label: "Privacy Policy" },
+                { to: "/cookies", label: "Cookie Policy" },
+                { to: "/dmca", label: "DMCA" },
+              ].map(({ to, label }) => (
+                <li key={to}>
+                  <Link 
+                    to={to} 
+                    className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group"
+                  >
+                    {label}
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ExternalLink className="h-3 w-3" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
