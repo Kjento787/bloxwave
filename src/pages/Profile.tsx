@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { User, Clock, Bookmark, Trash2, Play } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Clock, Bookmark, Trash2, Play, Settings, Film } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileSettings } from "@/components/ProfileSettings";
+import { UserStatistics } from "@/components/UserStatistics";
+import { FollowStats } from "@/components/FollowStats";
+import { Recommendations } from "@/components/Recommendations";
 import {
   getContinueWatching,
   getWatchList,
@@ -14,11 +19,26 @@ import {
   WatchList as WatchListType,
 } from "@/lib/watchHistory";
 import { getImageUrl } from "@/lib/tmdb";
-import { cn } from "@/lib/utils";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { profile, loading: profileLoading, userId } = useProfile();
   const [continueWatching, setContinueWatching] = useState<WatchProgress[]>([]);
   const [watchList, setWatchList] = useState<WatchListType[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session?.user);
+      if (!session?.user) {
+        navigate('/auth');
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     setContinueWatching(getContinueWatching());
@@ -44,22 +64,42 @@ const Profile = () => {
     return `${mins}m`;
   };
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       <main className="container mx-auto px-4 pt-24 pb-8">
         {/* Profile Header */}
-        <div className="flex flex-col md:flex-row items-center gap-6 mb-12 p-8 rounded-2xl bg-gradient-hero border border-border">
-          <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
-            <User className="h-12 w-12 text-primary" />
+        <div className="flex flex-col md:flex-row items-center gap-6 mb-8 p-8 rounded-2xl bg-gradient-hero border border-border">
+          <Avatar className="w-24 h-24 border-2 border-primary/50">
+            <AvatarImage src={profile?.avatar_url || undefined} alt="Profile" />
+            <AvatarFallback className="bg-primary/20">
+              <User className="h-12 w-12 text-primary" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-center md:text-left flex-1">
+            <h1 className="text-3xl font-bold mb-1">
+              {profile?.display_name || 'My Profile'}
+            </h1>
+            {profile?.bio && (
+              <p className="text-muted-foreground mb-3 max-w-lg">{profile.bio}</p>
+            )}
+            {userId && <FollowStats userId={userId} />}
           </div>
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-            <p className="text-muted-foreground">
-              Track your movies and manage your watchlist
-            </p>
-          </div>
+        </div>
+
+        {/* User Statistics */}
+        <div className="mb-8">
+          <UserStatistics />
+        </div>
+
+        {/* Recommendations */}
+        <div className="mb-8">
+          <Recommendations />
         </div>
 
         {/* Tabs */}
@@ -72,6 +112,10 @@ const Profile = () => {
             <TabsTrigger value="watchlist" className="gap-2">
               <Bookmark className="h-4 w-4" />
               My List ({watchList.length})
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -211,6 +255,13 @@ const Profile = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <div className="max-w-2xl">
+              <ProfileSettings />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
