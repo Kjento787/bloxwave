@@ -19,6 +19,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { CommentsSection } from "@/components/CommentsSection";
 import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -337,6 +338,11 @@ const MovieDetail = () => {
           contentType="movie"
           isAuthenticated={isAuthenticated}
         />
+      </section>
+
+      {/* Comments Section */}
+      <section className="container mx-auto px-4 py-12 border-t border-border/30">
+        <CommentsSection contentId={movieId} contentType="movie" />
       </section>
 
       {/* Similar Movies */}

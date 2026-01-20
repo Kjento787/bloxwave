@@ -20,6 +20,7 @@ import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
+import { CommentsSection } from "@/components/CommentsSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -436,6 +437,11 @@ const TVDetail = () => {
           contentType="tv"
           isAuthenticated={isAuthenticated}
         />
+      </section>
+
+      {/* Comments Section */}
+      <section className="container mx-auto px-4 py-12 border-t border-border/30">
+        <CommentsSection contentId={tvId} contentType="tv" />
       </section>
 
       {/* Similar Shows */}

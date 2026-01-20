@@ -11,6 +11,7 @@ interface MovieCarouselProps {
   className?: string;
   showProgress?: boolean;
   progressData?: Record<number, number>;
+  icon?: React.ReactNode;
 }
 
 export const MovieCarousel = ({
@@ -19,6 +20,7 @@ export const MovieCarousel = ({
   className,
   showProgress,
   progressData,
+  icon,
 }: MovieCarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -61,7 +63,10 @@ export const MovieCarousel = ({
     <section className={cn("relative group/carousel", className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-5 px-4 md:px-0">
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight">{title}</h2>
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
+          {icon}
+          {title}
+        </h2>
         <div className="flex gap-1.5">
           <Button
             variant="secondary"

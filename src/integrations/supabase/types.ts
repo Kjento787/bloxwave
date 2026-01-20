@@ -38,6 +38,47 @@ export type Database = {
         }
         Relationships: []
       }
+      comments: {
+        Row: {
+          comment_text: string
+          content_id: number
+          content_type: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_text: string
+          content_id: number
+          content_type: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_text?: string
+          content_id?: number
+          content_type?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_reports: {
         Row: {
           content_id: string
@@ -161,6 +202,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -170,6 +212,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -179,6 +222,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -299,6 +343,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_statistics: {
+        Row: {
+          comments_count: number | null
+          id: string
+          movies_watched: number | null
+          reviews_count: number | null
+          total_watch_time: number | null
+          tv_shows_watched: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          id?: string
+          movies_watched?: number | null
+          reviews_count?: number | null
+          total_watch_time?: number | null
+          tv_shows_watched?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          id?: string
+          movies_watched?: number | null
+          reviews_count?: number | null
+          total_watch_time?: number | null
+          tv_shows_watched?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       watchlists: {
         Row: {
           added_at: string
@@ -328,18 +405,21 @@ export type Database = {
       public_profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string | null
           display_name: string | null
           id: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string | null
