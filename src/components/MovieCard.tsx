@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Play, Plus, Check, Star, Tv, Film } from "lucide-react";
+import { Play, Plus, Check, Star, Tv, Film, Loader2 } from "lucide-react";
 import { Movie, getImageUrl } from "@/lib/tmdb";
 import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
-import { isInWatchList, addToWatchList, removeFromWatchList } from "@/lib/watchHistory";
+import { useWatchlist } from "@/hooks/useWatchlist";
 
 interface MovieCardProps {
   movie: Movie;
@@ -17,27 +16,26 @@ interface MovieCardProps {
 
 export const MovieCard = ({ movie, className, showProgress, progress, style }: MovieCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [inList, setInList] = useState(isInWatchList(movie.id));
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
+  
   const imageUrl = getImageUrl(movie.poster_path, "w500");
   const title = movie.title || movie.name || "Unknown";
   const year = (movie.release_date || movie.first_air_date)?.split("-")[0] || "";
   const isTV = movie.media_type === "tv";
+  const contentType = isTV ? "tv" : "movie";
   const detailPath = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
+  const inList = isInWatchlist(movie.id, contentType);
+  const isPending = addToWatchlist.isPending || removeFromWatchlist.isPending;
 
   const toggleWatchList = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (inList) {
-      removeFromWatchList(movie.id);
+      removeFromWatchlist.mutate({ contentId: movie.id, contentType });
     } else {
-      addToWatchList({
-        movieId: movie.id,
-        title: title,
-        posterPath: movie.poster_path,
-      });
+      addToWatchlist.mutate({ contentId: movie.id, contentType });
     }
-    setInList(!inList);
   };
 
   return (
@@ -135,8 +133,11 @@ export const MovieCard = ({ movie, className, showProgress, progress, style }: M
             variant="glass"
             className="w-full hover:scale-105 transition-transform"
             onClick={toggleWatchList}
+            disabled={isPending}
           >
-            {inList ? (
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : inList ? (
               <>
                 <Check className="h-4 w-4 text-primary" />
                 In List
