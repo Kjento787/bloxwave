@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Clock, Bookmark, Trash2, Play, Settings, Film } from "lucide-react";
+import { User, Clock, Bookmark, Trash2, Play, Settings, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,21 +12,29 @@ import { FollowStats } from "@/components/FollowStats";
 import { Recommendations } from "@/components/Recommendations";
 import {
   getContinueWatching,
-  getWatchList,
-  removeFromWatchList,
   removeWatchProgress,
   WatchProgress,
-  WatchList as WatchListType,
 } from "@/lib/watchHistory";
-import { getImageUrl } from "@/lib/tmdb";
+import { getImageUrl, fetchMovieDetails, fetchTVDetails } from "@/lib/tmdb";
 import { useProfile } from "@/hooks/useProfile";
+import { useWatchlist } from "@/hooks/useWatchlist";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+interface WatchlistItemWithDetails {
+  id: string;
+  content_id: number;
+  content_type: "movie" | "tv";
+  added_at: string;
+  title: string;
+  poster_path: string | null;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
   const { profile, loading: profileLoading, userId } = useProfile();
+  const { watchlist, isLoading: watchlistLoading, removeFromWatchlist } = useWatchlist();
   const [continueWatching, setContinueWatching] = useState<WatchProgress[]>([]);
-  const [watchList, setWatchList] = useState<WatchListType[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -42,17 +50,53 @@ const Profile = () => {
 
   useEffect(() => {
     setContinueWatching(getContinueWatching());
-    setWatchList(getWatchList());
   }, []);
+
+  // Fetch details for all watchlist items
+  const { data: watchlistWithDetails = [], isLoading: detailsLoading } = useQuery({
+    queryKey: ["watchlist-details", watchlist],
+    queryFn: async () => {
+      if (!watchlist || watchlist.length === 0) return [];
+      
+      const details = await Promise.all(
+        watchlist.map(async (item) => {
+          try {
+            if (item.content_type === "movie") {
+              const data = await fetchMovieDetails(item.content_id);
+              return {
+                ...item,
+                title: data.title || "Unknown",
+                poster_path: data.poster_path,
+              };
+            } else {
+              const data = await fetchTVDetails(item.content_id);
+              return {
+                ...item,
+                title: data.name || "Unknown",
+                poster_path: data.poster_path,
+              };
+            }
+          } catch {
+            return {
+              ...item,
+              title: "Unknown",
+              poster_path: null,
+            };
+          }
+        })
+      );
+      return details as WatchlistItemWithDetails[];
+    },
+    enabled: !!watchlist && watchlist.length > 0,
+  });
 
   const handleRemoveProgress = (movieId: number) => {
     removeWatchProgress(movieId);
     setContinueWatching(getContinueWatching());
   };
 
-  const handleRemoveFromList = (movieId: number) => {
-    removeFromWatchList(movieId);
-    setWatchList(getWatchList());
+  const handleRemoveFromList = (contentId: number, contentType: "movie" | "tv") => {
+    removeFromWatchlist.mutate({ contentId, contentType });
   };
 
   const formatTime = (seconds: number) => {
@@ -67,6 +111,8 @@ const Profile = () => {
   if (!isAuthenticated) {
     return null;
   }
+
+  const isWatchlistLoading = watchlistLoading || detailsLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,7 +157,7 @@ const Profile = () => {
             </TabsTrigger>
             <TabsTrigger value="watchlist" className="gap-2">
               <Bookmark className="h-4 w-4" />
-              My List ({watchList.length})
+              My List {isWatchlistLoading ? "" : `(${watchlistWithDetails.length})`}
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
@@ -207,12 +253,16 @@ const Profile = () => {
 
           {/* Watch List */}
           <TabsContent value="watchlist" className="space-y-4">
-            {watchList.length === 0 ? (
+            {isWatchlistLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : watchlistWithDetails.length === 0 ? (
               <div className="text-center py-12 px-4 rounded-xl bg-card border border-border">
                 <Bookmark className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Your list is empty</h3>
                 <p className="text-muted-foreground mb-4">
-                  Add movies to your list to watch later
+                  Add movies or TV shows to your list to watch later
                 </p>
                 <Link to="/movies">
                   <Button>Browse Movies</Button>
@@ -220,16 +270,16 @@ const Profile = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {watchList.map((item) => (
-                  <div key={item.movieId} className="group relative">
+                {watchlistWithDetails.map((item) => (
+                  <div key={item.id} className="group relative">
                     <Link
-                      to={`/movie/${item.movieId}`}
+                      to={item.content_type === "tv" ? `/tv/${item.content_id}` : `/movie/${item.content_id}`}
                       className="block rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all hover:scale-105"
                     >
                       <div className="aspect-[2/3]">
-                        {item.posterPath ? (
+                        {item.poster_path ? (
                           <img
-                            src={getImageUrl(item.posterPath, "w300")}
+                            src={getImageUrl(item.poster_path, "w300")}
                             alt={item.title}
                             className="w-full h-full object-cover"
                           />
@@ -241,13 +291,14 @@ const Profile = () => {
                       </div>
                       <div className="p-3">
                         <h3 className="font-medium text-sm line-clamp-1">{item.title}</h3>
+                        <p className="text-xs text-muted-foreground">{item.content_type === "tv" ? "TV Show" : "Movie"}</p>
                       </div>
                     </Link>
                     <Button
                       size="icon"
                       variant="secondary"
                       className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => handleRemoveFromList(item.movieId)}
+                      onClick={() => handleRemoveFromList(item.content_id, item.content_type)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
