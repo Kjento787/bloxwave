@@ -90,7 +90,7 @@ const DMCA = () => {
                 <div className="bg-card border border-border rounded-lg p-6">
                   <h3 className="text-lg font-medium mb-4 text-foreground">Copyright Agent Contact</h3>
                   <div className="space-y-2 text-muted-foreground">
-                    <p><strong>Email:</strong> dmca@bloxwave.com</p>
+                    <p><strong>Email:</strong> devdebt1@gmail.com</p>
                     <p><strong>Subject Line:</strong> DMCA Takedown Notice</p>
                   </div>
                 </div>
