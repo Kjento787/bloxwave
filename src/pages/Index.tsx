@@ -16,6 +16,7 @@ import {
   Movie,
 } from "@/lib/tmdb";
 import { getContinueWatching, WatchProgress } from "@/lib/watchHistory";
+import { History, Flame, Star, Clock, Film } from "lucide-react";
 
 const Index = () => {
   const [continueWatching, setContinueWatching] = useState<WatchProgress[]>([]);
@@ -54,7 +55,6 @@ const Index = () => {
     queryFn: fetchGenres,
   });
 
-  // Convert continue watching to Movie format
   const continueWatchingMovies: Movie[] = continueWatching.map((item) => ({
     id: item.movieId,
     title: item.title,
@@ -91,15 +91,15 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero Banner */}
+      {/* Hero Banner - Full Screen */}
       {trendingData?.results && <HeroBanner movies={trendingData.results} />}
 
       {/* Main Content */}
-      <div className="container mx-auto -mt-32 relative z-10 space-y-12 pb-8">
-        {/* Genre Quick Access - transparent overlay on hero */}
+      <div className="relative -mt-20 md:-mt-32 z-10 space-y-8 md:space-y-12 pb-8">
+        {/* Genre Quick Access */}
         {genresData?.genres && (
-          <section className="px-4 md:px-0">
-            <h2 className="text-xl md:text-2xl font-bold mb-4 drop-shadow-lg">Browse by Genre</h2>
+          <section className="px-4 md:px-8 lg:px-12">
+            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Browse by Genre</h2>
             <GenreButtons genres={genresData.genres} />
           </section>
         )}
@@ -111,27 +111,44 @@ const Index = () => {
             movies={continueWatchingMovies}
             showProgress
             progressData={progressData}
+            icon={<History className="h-5 w-5 text-primary" />}
           />
         )}
 
         {/* Now Playing */}
         {nowPlayingData?.results && (
-          <MovieCarousel title="Now Playing" movies={nowPlayingData.results} />
+          <MovieCarousel 
+            title="Now Playing" 
+            movies={nowPlayingData.results}
+            icon={<Film className="h-5 w-5 text-primary" />}
+          />
         )}
 
         {/* Popular */}
         {popularData?.results && (
-          <MovieCarousel title="Popular Right Now" movies={popularData.results} />
+          <MovieCarousel 
+            title="Popular Right Now" 
+            movies={popularData.results}
+            icon={<Flame className="h-5 w-5 text-primary" />}
+          />
         )}
 
         {/* Top Rated */}
         {topRatedData?.results && (
-          <MovieCarousel title="Top Rated" movies={topRatedData.results} />
+          <MovieCarousel 
+            title="Top Rated" 
+            movies={topRatedData.results}
+            icon={<Star className="h-5 w-5 text-primary" />}
+          />
         )}
 
         {/* Upcoming */}
         {upcomingData?.results && (
-          <MovieCarousel title="Coming Soon" movies={upcomingData.results} />
+          <MovieCarousel 
+            title="Coming Soon" 
+            movies={upcomingData.results}
+            icon={<Clock className="h-5 w-5 text-primary" />}
+          />
         )}
       </div>
 
