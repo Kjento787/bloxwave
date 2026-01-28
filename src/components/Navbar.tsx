@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, User, Bell, Menu, X, LogIn, LogOut, Shield, Bookmark } from "lucide-react";
+import { Search, User, Menu, X, LogIn, LogOut, Shield, Bookmark } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -31,12 +31,8 @@ export const Navbar = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-      
-      // Check admin status after auth change
       if (session?.user) {
-        setTimeout(() => {
-          checkAdminStatus(session.user.id);
-        }, 0);
+        setTimeout(() => checkAdminStatus(session.user.id), 0);
       } else {
         setIsAdmin(false);
       }
@@ -58,7 +54,6 @@ export const Navbar = () => {
       .select("role")
       .eq("user_id", userId)
       .eq("role", "admin");
-    
     setIsAdmin(data && data.length > 0);
   };
 
@@ -80,34 +75,34 @@ export const Navbar = () => {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/movies", label: "Movies" },
-    { href: "/genres", label: "Genres" },
+    { href: "/genres", label: "Series" },
   ];
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         isScrolled
-          ? "bg-background/95 backdrop-blur-lg border-b border-border"
-          : "bg-gradient-to-b from-background/80 to-transparent"
+          ? "bg-background/95 backdrop-blur-xl"
+          : "bg-gradient-to-b from-background/90 via-background/50 to-transparent"
       )}
     >
-      <div className="container mx-auto px-4">
+      <div className="w-full px-4 md:px-8 lg:px-12">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Logo />
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Navigation - Center */}
+          <div className="hidden md:flex items-center justify-center flex-1 gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                  location.pathname === link.href
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  "hbo-nav-link",
+                  isActive(link.href) && "active text-foreground"
                 )}
               >
                 {link.label}
@@ -116,24 +111,24 @@ export const Navbar = () => {
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {/* Search */}
             <div className="relative">
               {searchOpen ? (
-                <form onSubmit={handleSearch} className="flex items-center">
+                <form onSubmit={handleSearch} className="flex items-center animate-scale-in">
                   <Input
                     type="text"
-                    placeholder="Search movies & TV..."
+                    placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-48 md:w-64 h-9 bg-secondary/50 border-border focus:border-primary animate-scale-in"
+                    className="w-40 md:w-56 h-9 bg-secondary/80 border-0 focus:ring-1 focus:ring-primary rounded-full text-sm"
                     autoFocus
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 ml-1"
+                    className="h-9 w-9 ml-1 rounded-full"
                     onClick={() => {
                       setSearchOpen(false);
                       setSearchQuery("");
@@ -147,7 +142,7 @@ export const Navbar = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setSearchOpen(true)}
-                  className="h-9 w-9"
+                  className="h-9 w-9 rounded-full hover:bg-secondary/50"
                 >
                   <Search className="h-5 w-5" />
                 </Button>
@@ -159,10 +154,10 @@ export const Navbar = () => {
               <ThemeToggle />
             </div>
 
-            {/* Watchlist - only show if logged in */}
+            {/* Watchlist */}
             {user && (
               <Link to="/profile" className="hidden md:block">
-                <Button variant="ghost" size="icon" className="h-9 w-9" title="My Watchlist">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary/50" title="My List">
                   <Bookmark className="h-5 w-5" />
                 </Button>
               </Link>
@@ -173,20 +168,20 @@ export const Navbar = () => {
               <>
                 {isAdmin && (
                   <Link to="/admin">
-                    <Button variant="ghost" size="icon" className="h-9 w-9" title="Admin Panel">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary/50" title="Admin">
                       <Shield className="h-5 w-5 text-primary" />
                     </Button>
                   </Link>
                 )}
                 <Link to="/profile">
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary/50">
                     <User className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hidden md:flex h-9 w-9"
+                  className="hidden md:flex h-9 w-9 rounded-full hover:bg-secondary/50"
                   onClick={handleSignOut}
                   title="Sign Out"
                 >
@@ -195,7 +190,12 @@ export const Navbar = () => {
               </>
             ) : (
               <Link to="/auth">
-                <Button variant="ghost" size="icon" className="h-9 w-9" title="Sign In">
+                <Button 
+                  className="hidden md:flex h-9 px-4 rounded-full bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold"
+                >
+                  Sign In
+                </Button>
+                <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-full" title="Sign In">
                   <LogIn className="h-5 w-5" />
                 </Button>
               </Link>
@@ -205,44 +205,46 @@ export const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden h-9 w-9"
+              className="md:hidden h-9 w-9 rounded-full"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in">
-            <div className="flex flex-col gap-2">
+          <div className="md:hidden py-4 border-t border-border/30 animate-fade-in">
+            <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    location.pathname === link.href
+                    "px-4 py-3 rounded-lg text-base font-medium transition-colors",
+                    isActive(link.href)
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
+                      : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                   )}
                 >
                   {link.label}
                 </Link>
               ))}
+              
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm text-muted-foreground">Theme</span>
+                <ThemeToggle />
+              </div>
+
               {user ? (
                 <>
                   {isAdmin && (
                     <Link
                       to="/admin"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="px-4 py-2 rounded-lg text-sm font-medium text-primary hover:bg-secondary flex items-center gap-2"
+                      className="px-4 py-3 rounded-lg text-base font-medium text-primary hover:bg-secondary/50 flex items-center gap-2"
                     >
                       <Shield className="h-4 w-4" />
                       Admin Panel
@@ -253,8 +255,9 @@ export const Navbar = () => {
                       handleSignOut();
                       setMobileMenuOpen(false);
                     }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary text-left"
+                    className="px-4 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary/50 text-left flex items-center gap-2"
                   >
+                    <LogOut className="h-4 w-4" />
                     Sign Out
                   </button>
                 </>
@@ -262,9 +265,9 @@ export const Navbar = () => {
                 <Link
                   to="/auth"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-primary hover:bg-secondary"
+                  className="mx-4 mt-2 py-3 rounded-full bg-foreground text-background font-semibold text-center"
                 >
-                  Sign In / Sign Up
+                  Sign In
                 </Link>
               )}
             </div>

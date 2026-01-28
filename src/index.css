@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,99 +6,118 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    /* HBO Max Dark Theme - Deep Purple/Indigo */
+    --background: 250 25% 3%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 250 25% 6%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 47% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 250 25% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 186 100% 50%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 265 100% 64%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 12%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 250 25% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 222 30% 15%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 250 20% 15%;
+    --muted-foreground: 250 10% 55%;
 
-    --accent: 186 100% 50%;
-    --accent-foreground: 222 47% 6%;
+    --accent: 265 100% 64%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 15%;
-    --ring: 186 100% 50%;
+    --border: 250 20% 14%;
+    --input: 250 20% 12%;
+    --ring: 265 100% 64%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Custom Bloxwave tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(186 100% 50% / 0.2), hsl(260 100% 60% / 0.2));
-    --gradient-card: linear-gradient(180deg, hsl(222 47% 10%), hsl(222 47% 6%));
-    --gradient-overlay: linear-gradient(to top, hsl(222 47% 6%), transparent);
-    --shadow-glow: 0 0 40px hsl(186 100% 50% / 0.3);
-    --shadow-card: 0 8px 32px hsl(222 47% 2% / 0.5);
+    /* HBO Max Specific Tokens */
+    --hbo-purple: 265 100% 64%;
+    --hbo-purple-glow: 265 100% 70%;
+    --hbo-dark: 250 25% 3%;
+    --hbo-darker: 250 30% 2%;
+    --hbo-card: 250 25% 8%;
+    --hbo-hover: 250 25% 12%;
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(180deg, transparent 0%, hsl(250 25% 3%) 100%);
+    --gradient-hero-side: linear-gradient(90deg, hsl(250 25% 3%) 0%, transparent 50%);
+    --gradient-card: linear-gradient(180deg, hsl(250 25% 10%), hsl(250 25% 6%));
+    --gradient-purple: linear-gradient(135deg, hsl(265 100% 64%), hsl(280 100% 55%));
+    --gradient-overlay: linear-gradient(to top, hsl(250 25% 3%), transparent);
+    
+    /* Shadows */
+    --shadow-glow: 0 0 60px hsl(265 100% 64% / 0.4);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.5);
+    --shadow-hover: 0 20px 40px hsl(0 0% 0% / 0.6);
     
     /* Sidebar */
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 186 100% 50%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 47% 12%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 186 100% 50%;
+    --sidebar-background: 250 25% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 265 100% 64%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 250 25% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 250 20% 14%;
+    --sidebar-ring: 265 100% 64%;
   }
 
   .light {
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 250 25% 10%;
 
     --card: 0 0% 98%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 250 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 250 25% 10%;
 
-    --primary: 186 100% 40%;
+    --primary: 265 100% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 250 15% 94%;
+    --secondary-foreground: 250 25% 10%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 250 15% 94%;
+    --muted-foreground: 250 10% 45%;
 
-    --accent: 186 100% 40%;
+    --accent: 265 100% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 186 100% 40%;
+    --border: 250 15% 90%;
+    --input: 250 15% 90%;
+    --ring: 265 100% 55%;
 
-    /* Custom Bloxwave tokens - Light */
-    --gradient-hero: linear-gradient(135deg, hsl(186 100% 40% / 0.1), hsl(260 100% 60% / 0.1));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 96%));
+    /* Light mode tokens */
+    --hbo-purple: 265 100% 55%;
+    --hbo-purple-glow: 265 100% 60%;
+    --gradient-hero: linear-gradient(180deg, transparent 0%, hsl(0 0% 100%) 100%);
+    --gradient-hero-side: linear-gradient(90deg, hsl(0 0% 100%) 0%, transparent 50%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(250 15% 96%));
+    --gradient-purple: linear-gradient(135deg, hsl(265 100% 55%), hsl(280 100% 50%));
     --gradient-overlay: linear-gradient(to top, hsl(0 0% 100%), transparent);
-    --shadow-glow: 0 0 40px hsl(186 100% 40% / 0.2);
-    --shadow-card: 0 8px 32px hsl(220 13% 91% / 0.8);
+    --shadow-glow: 0 0 60px hsl(265 100% 55% / 0.25);
+    --shadow-card: 0 8px 32px hsl(250 15% 85% / 0.5);
+    --shadow-hover: 0 20px 40px hsl(250 15% 80% / 0.4);
     
     /* Sidebar - Light */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 186 100% 40%;
+    --sidebar-foreground: 250 25% 10%;
+    --sidebar-primary: 265 100% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 186 100% 40%;
+    --sidebar-accent: 250 15% 94%;
+    --sidebar-accent-foreground: 250 25% 10%;
+    --sidebar-border: 250 15% 90%;
+    --sidebar-ring: 265 100% 55%;
   }
 }
 
@@ -112,46 +131,115 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
-  /* Improved focus states for accessibility */
+  /* Improved focus states */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary;
+    @apply outline-2 outline-offset-2 outline-primary rounded-sm;
   }
 
-  /* Selection styling */
   ::selection {
     @apply bg-primary/30 text-foreground;
   }
 
+  /* Custom Scrollbar - HBO Style */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-background;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted rounded-full;
+    @apply bg-muted-foreground/20 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+    @apply bg-muted-foreground/40;
+  }
+}
+
+@layer components {
+  /* HBO Max Card Style */
+  .hbo-card {
+    @apply relative overflow-hidden rounded-lg bg-card transition-all duration-300;
+  }
+  
+  .hbo-card:hover {
+    @apply scale-105 z-20;
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* HBO Max Button */
+  .hbo-button {
+    @apply px-6 py-3 rounded-md font-semibold text-sm uppercase tracking-wider transition-all duration-200;
+  }
+
+  .hbo-button-primary {
+    @apply hbo-button bg-foreground text-background hover:bg-foreground/90;
+  }
+
+  .hbo-button-secondary {
+    @apply hbo-button bg-secondary/80 text-foreground hover:bg-secondary;
+  }
+
+  /* HBO Max Navigation Link */
+  .hbo-nav-link {
+    @apply relative px-4 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200;
+  }
+
+  .hbo-nav-link:hover,
+  .hbo-nav-link.active {
+    @apply text-foreground;
+  }
+
+  .hbo-nav-link::after {
+    @apply content-[''] absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-300;
+  }
+
+  .hbo-nav-link:hover::after,
+  .hbo-nav-link.active::after {
+    @apply w-full;
+  }
+
+  /* HBO Max Genre Pill */
+  .hbo-pill {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium 
+           bg-secondary/60 text-foreground/80 backdrop-blur-sm
+           transition-all duration-200 hover:bg-primary hover:text-primary-foreground;
+  }
+
+  /* HBO Max Content Row */
+  .hbo-row {
+    @apply relative;
+  }
+
+  .hbo-row-title {
+    @apply text-xl md:text-2xl font-bold mb-4 px-4 md:px-12;
+  }
+
+  .hbo-row-content {
+    @apply flex gap-2 md:gap-3 overflow-x-auto hide-scrollbar scroll-smooth px-4 md:px-12 pb-4;
   }
 }
 
 @layer utilities {
+  /* Text Gradient - HBO Purple */
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(186 100% 50%), hsl(260 100% 70%));
+    background-image: var(--gradient-purple);
   }
 
   .bg-gradient-hero {
     background: var(--gradient-hero);
+  }
+
+  .bg-gradient-hero-side {
+    background: var(--gradient-hero-side);
   }
 
   .bg-gradient-card {
@@ -162,6 +250,10 @@
     background: var(--gradient-overlay);
   }
 
+  .bg-gradient-purple {
+    background: var(--gradient-purple);
+  }
+
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
@@ -170,6 +262,11 @@
     box-shadow: var(--shadow-card);
   }
 
+  .shadow-hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* Shimmer Animation */
   .animate-shimmer {
     animation: shimmer 2s linear infinite;
     background: linear-gradient(
@@ -182,59 +279,41 @@
   }
 
   @keyframes shimmer {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
+  /* Fade In Animation */
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Slide Up Animation */
   .animate-slide-up {
     animation: slideUp 0.6s ease-out forwards;
   }
 
   @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Scale In Animation */
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out forwards;
   }
 
   @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
   }
 
+  /* Hide Scrollbar */
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -244,14 +323,10 @@
     display: none;
   }
 
-  /* Progress animation for hero banner dots */
+  /* Progress Animation */
   @keyframes progress {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
-    }
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
   }
 
   .animate-progress {
@@ -259,70 +334,45 @@
     transform-origin: left;
   }
 
-  /* Text shadow for better readability on images */
+  /* Text Shadow */
   .text-shadow-lg {
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8), 0 4px 40px rgba(0, 0, 0, 0.5);
   }
 
-  /* Pulse glow effect */
+  .text-shadow-sm {
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Glow Animation */
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
 
   @keyframes glow {
-    from {
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
-    }
-    to {
-      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
-    }
+    from { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+    to { box-shadow: 0 0 40px hsl(var(--primary) / 0.6); }
   }
 
-  /* Bounce animation for interactive elements */
-  .hover-bounce {
-    transition: transform 0.2s ease;
+  /* Hover Effects */
+  .hover-lift {
+    @apply transition-transform duration-300;
   }
 
-  .hover-bounce:hover {
-    animation: bounce 0.5s ease;
+  .hover-lift:hover {
+    @apply -translate-y-1;
   }
 
-  @keyframes bounce {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
-  }
-
-  /* TV Screen Optimizations - for screens 1920px and larger */
+  /* TV Screen Optimizations */
   @media (min-width: 1920px) {
-    .tv\:text-lg {
-      font-size: 1.125rem;
-      line-height: 1.75rem;
-    }
-    .tv\:text-xl {
-      font-size: 1.25rem;
-      line-height: 1.75rem;
-    }
-    .tv\:text-2xl {
-      font-size: 1.5rem;
-      line-height: 2rem;
-    }
-    .tv\:w-32 {
-      width: 8rem;
-    }
-    .tv\:h-14 {
-      height: 3.5rem;
-    }
-    .tv\:py-3 {
-      padding-top: 0.75rem;
-      padding-bottom: 0.75rem;
-    }
-    .tv\:max-h-80 {
-      max-height: 20rem;
-    }
+    .tv\:text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .tv\:text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .tv\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .tv\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    .tv\:w-32 { width: 8rem; }
+    .tv\:h-14 { height: 3.5rem; }
+    .tv\:py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .tv\:max-h-80 { max-height: 20rem; }
+    .tv\:gap-4 { gap: 1rem; }
   }
 
   /* Video Player Ad Blocking CSS */
@@ -336,7 +386,6 @@
     z-index: 1;
   }
 
-  /* Block common ad overlay patterns */
   .video-player-container::before {
     content: '';
     position: absolute;
@@ -348,7 +397,6 @@
     z-index: 2;
   }
 
-  /* Aggressive ad element hiding via CSS injection approach */
   .ad-blocker-active [class*="ad-"],
   .ad-blocker-active [class*="ads-"],
   .ad-blocker-active [class*="popup"],
@@ -369,5 +417,14 @@
     height: 0 !important;
     width: 0 !important;
     overflow: hidden !important;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50;
+  }
+
+  .glass-strong {
+    @apply bg-background/80 backdrop-blur-2xl border border-border/30;
   }
 }
