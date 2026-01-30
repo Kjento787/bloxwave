@@ -408,6 +408,7 @@ export const discoverMovies = async (params: {
   year?: number;
   voteAverageGte?: number;
   withGenres?: string;
+  withKeywords?: string;
 }): Promise<MoviesResponse> => {
   const queryParams: Record<string, string> = {
     language: 'en-US',
@@ -418,6 +419,79 @@ export const discoverMovies = async (params: {
   if (params.year) queryParams.year = String(params.year);
   if (params.voteAverageGte) queryParams['vote_average.gte'] = String(params.voteAverageGte);
   if (params.withGenres) queryParams.with_genres = params.withGenres;
+  if (params.withKeywords) queryParams.with_keywords = params.withKeywords;
 
   return tmdbFetch<MoviesResponse>('/discover/movie', queryParams);
+};
+
+// Fetch trending TV shows
+export const fetchTrendingTV = async (timeWindow: "day" | "week" = "week"): Promise<MoviesResponse> => {
+  const data = await tmdbFetch<any>(`/trending/tv/${timeWindow}`);
+  return {
+    ...data,
+    results: data.results.map((item: any) => ({
+      ...item,
+      title: item.name,
+      release_date: item.first_air_date,
+      media_type: 'tv' as const,
+    })),
+  };
+};
+
+// Fetch trending all (movies + TV)
+export const fetchTrendingAll = async (timeWindow: "day" | "week" = "week"): Promise<MoviesResponse> => {
+  const data = await tmdbFetch<any>(`/trending/all/${timeWindow}`);
+  return {
+    ...data,
+    results: data.results
+      .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+      .map((item: any) => ({
+        ...item,
+        title: item.title || item.name,
+        release_date: item.release_date || item.first_air_date,
+      })),
+  };
+};
+
+// Discover TV shows
+export const discoverTV = async (params: {
+  page?: number;
+  sortBy?: string;
+  withGenres?: string;
+  withKeywords?: string;
+}): Promise<MoviesResponse> => {
+  const queryParams: Record<string, string> = {
+    language: 'en-US',
+    page: String(params.page || 1),
+    sort_by: params.sortBy || 'popularity.desc',
+  };
+
+  if (params.withGenres) queryParams.with_genres = params.withGenres;
+  if (params.withKeywords) queryParams.with_keywords = params.withKeywords;
+
+  const data = await tmdbFetch<any>('/discover/tv', queryParams);
+  return {
+    ...data,
+    results: data.results.map((item: any) => ({
+      ...item,
+      title: item.name,
+      release_date: item.first_air_date,
+      media_type: 'tv' as const,
+    })),
+  };
+};
+
+// TV Genres
+export const fetchTVGenres = async (): Promise<{ genres: Genre[] }> => {
+  return tmdbFetch<{ genres: Genre[] }>('/genre/tv/list', { language: 'en-US' });
+};
+
+// Fetch movie videos for previews
+export const fetchMovieVideos = async (movieId: number): Promise<{ results: Video[] }> => {
+  return tmdbFetch<{ results: Video[] }>(`/movie/${movieId}/videos`, { language: 'en-US' });
+};
+
+// Fetch TV videos for previews
+export const fetchTVVideos = async (tvId: number): Promise<{ results: Video[] }> => {
+  return tmdbFetch<{ results: Video[] }>(`/tv/${tvId}/videos`, { language: 'en-US' });
 };
