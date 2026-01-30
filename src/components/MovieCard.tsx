@@ -23,7 +23,6 @@ export const MovieCard = ({
   style,
   variant = "default" 
 }: MovieCardProps) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
   
@@ -47,28 +46,27 @@ export const MovieCard = ({
   };
 
   const sizeClasses = {
-    default: "w-32 sm:w-36 md:w-40 lg:w-44",
-    large: "w-40 sm:w-48 md:w-56 lg:w-64",
-    compact: "w-28 sm:w-32 md:w-36",
+    default: "w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px]",
+    large: "w-[180px] sm:w-[200px] md:w-[240px] lg:w-[280px]",
+    compact: "w-[120px] sm:w-[140px] md:w-[160px]",
   };
 
   return (
     <Link
       to={detailPath}
       className={cn(
-        "group relative block rounded-lg overflow-hidden bg-card flex-shrink-0 transition-all duration-300",
-        "hover:scale-105 hover:z-20",
-        "focus-visible:scale-105 focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        "group relative block rounded-lg overflow-hidden bg-card flex-shrink-0",
+        "transition-all duration-300 ease-out",
+        "hover:scale-[1.08] hover:z-20 hover:shadow-hover",
+        "focus-visible:scale-[1.08] focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         sizeClasses[variant],
         className
       )}
       style={style}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Poster Image */}
+      {/* Poster Image Container */}
       <div className="aspect-[2/3] relative overflow-hidden rounded-lg">
-        {/* Loading skeleton */}
+        {/* Loading Skeleton */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-secondary animate-shimmer rounded-lg" />
         )}
@@ -87,39 +85,40 @@ export const MovieCard = ({
           />
         ) : (
           <div className="w-full h-full bg-secondary flex items-center justify-center rounded-lg">
-            <Film className="h-8 w-8 text-muted-foreground" />
+            <Film className="h-10 w-10 text-muted-foreground" />
           </div>
         )}
 
-        {/* Hover Overlay - HBO Max Style */}
+        {/* Hover Gradient Overlay */}
         <div
           className={cn(
-            "absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent rounded-lg",
-            "opacity-0 group-hover:opacity-100 transition-all duration-300"
+            "absolute inset-0 rounded-lg",
+            "bg-gradient-to-t from-background via-background/60 to-transparent",
+            "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           )}
         />
 
-        {/* Media Type Badge */}
+        {/* Media Type Badge - Top Left */}
         {movie.media_type && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-background/80 backdrop-blur-sm">
+          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm text-xs font-semibold">
             {isTV ? <Tv className="h-3 w-3" /> : <Film className="h-3 w-3" />}
-            <span className="text-xs font-semibold">{isTV ? "TV" : "Movie"}</span>
+            <span>{isTV ? "TV" : "Movie"}</span>
           </div>
         )}
 
-        {/* Rating Badge */}
+        {/* Rating Badge - Top Right */}
         {movie.vote_average > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded bg-background/80 backdrop-blur-sm">
+          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm text-xs font-semibold">
             <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-            <span className="text-xs font-semibold">{movie.vote_average.toFixed(1)}</span>
+            <span>{movie.vote_average.toFixed(1)}</span>
           </div>
         )}
 
-        {/* Progress Bar */}
+        {/* Progress Bar - Bottom */}
         {showProgress && progress !== undefined && progress > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted/80 rounded-b-lg">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted/60 rounded-b-lg overflow-hidden">
             <div
-              className="h-full bg-primary transition-all duration-300 rounded-r-full"
+              className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -128,48 +127,46 @@ export const MovieCard = ({
         {/* Hover Actions - HBO Max Style */}
         <div
           className={cn(
-            "absolute inset-0 flex flex-col items-center justify-end p-3 gap-2 rounded-lg",
-            "opacity-0 group-hover:opacity-100 transition-all duration-300",
-            "translate-y-2 group-hover:translate-y-0"
+            "absolute inset-x-0 bottom-0 p-3 flex flex-col gap-2",
+            "opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0",
+            "transition-all duration-300"
           )}
         >
           <Button 
             size="sm" 
-            className="w-full h-9 rounded bg-foreground text-background hover:bg-foreground/90 font-semibold text-xs uppercase tracking-wider"
+            className="w-full h-9 rounded-md bg-foreground text-background hover:bg-foreground/90 font-bold text-xs uppercase tracking-wider gap-1.5"
           >
-            <Play className="h-4 w-4 fill-current" />
+            <Play className="h-3.5 w-3.5 fill-current" />
             Play
           </Button>
           <Button
             size="sm"
             variant="secondary"
-            className="w-full h-9 rounded bg-secondary/90 hover:bg-secondary font-semibold text-xs"
+            className="w-full h-9 rounded-md bg-secondary/80 backdrop-blur-sm hover:bg-secondary font-semibold text-xs gap-1.5"
             onClick={toggleWatchList}
             disabled={isPending}
           >
             {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : inList ? (
               <>
-                <Check className="h-4 w-4 text-primary" />
-                In My List
+                <Check className="h-3.5 w-3.5 text-primary" />
+                In List
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" />
-                Add to List
+                <Plus className="h-3.5 w-3.5" />
+                My List
               </>
             )}
           </Button>
         </div>
       </div>
 
-      {/* Info - Visible on Hover for Desktop, Always on Mobile */}
-      <div className="p-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-        <h3 className="font-semibold text-sm line-clamp-1">
-          {title}
-        </h3>
-        <p className="text-xs text-muted-foreground">{year}</p>
+      {/* Card Info - Visible Always on Mobile, Hover on Desktop */}
+      <div className="p-2 md:p-0 md:absolute md:inset-x-0 md:bottom-0 md:p-3 md:opacity-0 md:group-hover:opacity-0">
+        <h3 className="font-semibold text-sm line-clamp-1 md:hidden">{title}</h3>
+        <p className="text-xs text-muted-foreground md:hidden">{year}</p>
       </div>
     </Link>
   );

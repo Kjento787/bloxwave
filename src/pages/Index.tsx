@@ -88,69 +88,72 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
-      {/* Hero Banner - Full Screen */}
+      {/* Hero Banner - Full Screen with Overlap */}
       {trendingData?.results && <HeroBanner movies={trendingData.results} />}
 
-      {/* Main Content */}
-      <div className="relative -mt-20 md:-mt-32 z-10 space-y-8 md:space-y-12 pb-8">
+      {/* Main Content - Overlapping Hero with negative margin */}
+      <main className="relative z-10 -mt-32 md:-mt-48 lg:-mt-56">
         {/* Genre Quick Access */}
         {genresData?.genres && (
-          <section className="px-4 md:px-8 lg:px-12">
-            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Browse by Genre</h2>
+          <section className="px-4 md:px-8 lg:px-12 mb-6 md:mb-8">
+            <h2 className="text-base md:text-lg font-semibold mb-3 text-foreground/80">Browse by Genre</h2>
             <GenreButtons genres={genresData.genres} />
           </section>
         )}
 
-        {/* Continue Watching */}
-        {continueWatchingMovies.length > 0 && (
-          <MovieCarousel
-            title="Continue Watching"
-            movies={continueWatchingMovies}
-            showProgress
-            progressData={progressData}
-            icon={<History className="h-5 w-5 text-primary" />}
-          />
-        )}
+        {/* Content Rows Container */}
+        <div className="space-y-6 md:space-y-8 lg:space-y-10">
+          {/* Continue Watching */}
+          {continueWatchingMovies.length > 0 && (
+            <MovieCarousel
+              title="Continue Watching"
+              movies={continueWatchingMovies}
+              showProgress
+              progressData={progressData}
+              icon={<History className="h-5 w-5 text-primary" />}
+            />
+          )}
 
-        {/* Now Playing */}
-        {nowPlayingData?.results && (
-          <MovieCarousel 
-            title="Now Playing" 
-            movies={nowPlayingData.results}
-            icon={<Film className="h-5 w-5 text-primary" />}
-          />
-        )}
+          {/* Now Playing */}
+          {nowPlayingData?.results && (
+            <MovieCarousel 
+              title="Now Playing" 
+              movies={nowPlayingData.results}
+              icon={<Film className="h-5 w-5 text-primary" />}
+            />
+          )}
 
-        {/* Popular */}
-        {popularData?.results && (
-          <MovieCarousel 
-            title="Popular Right Now" 
-            movies={popularData.results}
-            icon={<Flame className="h-5 w-5 text-primary" />}
-          />
-        )}
+          {/* Popular */}
+          {popularData?.results && (
+            <MovieCarousel 
+              title="Popular Right Now" 
+              movies={popularData.results}
+              icon={<Flame className="h-5 w-5 text-primary" />}
+            />
+          )}
 
-        {/* Top Rated */}
-        {topRatedData?.results && (
-          <MovieCarousel 
-            title="Top Rated" 
-            movies={topRatedData.results}
-            icon={<Star className="h-5 w-5 text-primary" />}
-          />
-        )}
+          {/* Top Rated */}
+          {topRatedData?.results && (
+            <MovieCarousel 
+              title="Top Rated" 
+              movies={topRatedData.results}
+              icon={<Star className="h-5 w-5 text-primary" />}
+            />
+          )}
 
-        {/* Upcoming */}
-        {upcomingData?.results && (
-          <MovieCarousel 
-            title="Coming Soon" 
-            movies={upcomingData.results}
-            icon={<Clock className="h-5 w-5 text-primary" />}
-          />
-        )}
-      </div>
+          {/* Upcoming */}
+          {upcomingData?.results && (
+            <MovieCarousel 
+              title="Coming Soon" 
+              movies={upcomingData.results}
+              icon={<Clock className="h-5 w-5 text-primary" />}
+            />
+          )}
+        </div>
+      </main>
 
       <Footer />
     </div>
