@@ -70,34 +70,51 @@ export const GenreButtons = ({ genres, selectedGenre, className, showAllGenres =
   const displayGenres = showAllGenres ? genres : genres.slice(0, 8);
   
   return (
-    <div className={cn("flex flex-wrap gap-2 md:gap-3", className)}>
-      {displayGenres.map((genre) => {
+    <div className={cn("flex flex-wrap gap-2", className)}>
+      {displayGenres.map((genre, index) => {
         const Icon = genreIcons[genre.id] || Film;
         const isSelected = selectedGenre === genre.id;
         
         return (
-          <Link key={genre.id} to={`/genre/${genre.id}`}>
-            <button
-              className={cn(
-                "hbo-pill",
-                isSelected && "bg-primary text-primary-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span>{genre.name}</span>
-            </button>
+          <Link 
+            key={genre.id} 
+            to={`/genre/${genre.id}`}
+            className={cn(
+              "inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full",
+              "text-xs md:text-sm font-medium",
+              "bg-secondary/50 backdrop-blur-sm border border-border/30",
+              "transition-all duration-200",
+              "hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-105",
+              isSelected 
+                ? "bg-primary text-primary-foreground border-primary" 
+                : "text-foreground/80"
+            )}
+            style={{ animationDelay: `${index * 30}ms` }}
+          >
+            <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span>{genre.name}</span>
           </Link>
         );
       })}
       
-      {customCategories.map((category) => {
+      {customCategories.map((category, index) => {
         const Icon = category.icon;
         return (
-          <Link key={category.id} to={category.path}>
-            <button className="hbo-pill border border-primary/30 text-primary">
-              <Icon className="h-4 w-4" />
-              <span>{category.name}</span>
-            </button>
+          <Link 
+            key={category.id} 
+            to={category.path}
+            className={cn(
+              "inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full",
+              "text-xs md:text-sm font-medium",
+              "bg-primary/10 backdrop-blur-sm border border-primary/30",
+              "text-primary",
+              "transition-all duration-200",
+              "hover:bg-primary hover:text-primary-foreground hover:scale-105"
+            )}
+            style={{ animationDelay: `${(displayGenres.length + index) * 30}ms` }}
+          >
+            <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span>{category.name}</span>
           </Link>
         );
       })}
