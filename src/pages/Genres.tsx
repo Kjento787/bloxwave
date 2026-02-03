@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { fetchGenres, fetchMoviesByGenre, getImageUrl, Genre } from "@/lib/tmdb";
+import { Badge } from "@/components/ui/badge";
 import {
   Sword,
   Laugh,
@@ -20,7 +21,9 @@ import {
   Tv,
   Shield,
   Bomb,
+  Play,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const genreIcons: Record<number, React.ElementType> = {
   28: Bomb,
@@ -43,25 +46,25 @@ const genreIcons: Record<number, React.ElementType> = {
   37: Sword,
 };
 
-const genreColors: Record<number, string> = {
-  28: "from-red-500/20 to-orange-500/20",
-  12: "from-emerald-500/20 to-green-500/20",
-  16: "from-pink-500/20 to-purple-500/20",
-  35: "from-yellow-500/20 to-amber-500/20",
-  80: "from-slate-500/20 to-gray-500/20",
-  99: "from-blue-500/20 to-cyan-500/20",
-  18: "from-violet-500/20 to-purple-500/20",
-  10751: "from-pink-500/20 to-rose-500/20",
-  14: "from-indigo-500/20 to-blue-500/20",
-  36: "from-amber-500/20 to-yellow-500/20",
-  27: "from-gray-500/20 to-slate-500/20",
-  10402: "from-fuchsia-500/20 to-pink-500/20",
-  9648: "from-teal-500/20 to-cyan-500/20",
-  10749: "from-rose-500/20 to-pink-500/20",
-  878: "from-cyan-500/20 to-blue-500/20",
-  53: "from-red-500/20 to-rose-500/20",
-  10752: "from-stone-500/20 to-gray-500/20",
-  37: "from-orange-500/20 to-amber-500/20",
+const genreColors: Record<number, { bg: string; text: string }> = {
+  28: { bg: "from-red-600/30 to-orange-600/30", text: "text-red-400" },
+  12: { bg: "from-emerald-600/30 to-green-600/30", text: "text-emerald-400" },
+  16: { bg: "from-pink-600/30 to-purple-600/30", text: "text-pink-400" },
+  35: { bg: "from-yellow-600/30 to-amber-600/30", text: "text-yellow-400" },
+  80: { bg: "from-slate-600/30 to-gray-600/30", text: "text-slate-400" },
+  99: { bg: "from-blue-600/30 to-cyan-600/30", text: "text-blue-400" },
+  18: { bg: "from-violet-600/30 to-purple-600/30", text: "text-violet-400" },
+  10751: { bg: "from-pink-600/30 to-rose-600/30", text: "text-pink-400" },
+  14: { bg: "from-indigo-600/30 to-blue-600/30", text: "text-indigo-400" },
+  36: { bg: "from-amber-600/30 to-yellow-600/30", text: "text-amber-400" },
+  27: { bg: "from-gray-600/30 to-slate-600/30", text: "text-gray-400" },
+  10402: { bg: "from-fuchsia-600/30 to-pink-600/30", text: "text-fuchsia-400" },
+  9648: { bg: "from-teal-600/30 to-cyan-600/30", text: "text-teal-400" },
+  10749: { bg: "from-rose-600/30 to-pink-600/30", text: "text-rose-400" },
+  878: { bg: "from-cyan-600/30 to-blue-600/30", text: "text-cyan-400" },
+  53: { bg: "from-red-600/30 to-rose-600/30", text: "text-red-400" },
+  10752: { bg: "from-stone-600/30 to-gray-600/30", text: "text-stone-400" },
+  37: { bg: "from-orange-600/30 to-amber-600/30", text: "text-orange-400" },
 };
 
 const Genres = () => {
@@ -72,7 +75,6 @@ const Genres = () => {
 
   const genres = genresData?.genres || [];
 
-  // Fetch movie data for all genres using useQueries
   const genreMoviesQueries = useQueries({
     queries: genres.map((genre) => ({
       queryKey: ["genreMovies", genre.id],
@@ -96,53 +98,83 @@ const Genres = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 pb-8">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Genres</h1>
-          <p className="text-muted-foreground">
-            Explore movies by your favorite genres
+      {/* Hero Header */}
+      <section className="pt-24 pb-12 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 relative">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4">
+            Browse by Genre
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl">
+            Explore movies organized by genre. Find your next favorite film in any category.
           </p>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+      <main className="container mx-auto px-4 md:px-8 lg:px-12 pb-12">
+        {/* Genre Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {genres.map((genre, index) => {
             const Icon = genreIcons[genre.id] || Film;
-            const gradientColor = genreColors[genre.id] || "from-primary/20 to-accent/20";
+            const colors = genreColors[genre.id] || { bg: "from-primary/30 to-accent/30", text: "text-primary" };
             const queryResult = genreMoviesQueries[index];
-            const backdrop = queryResult?.data?.results[0]?.backdrop_path;
+            const movies = queryResult?.data?.results?.slice(0, 4) || [];
             const totalResults = queryResult?.data?.total_results;
 
             return (
               <Link
                 key={genre.id}
                 to={`/genre/${genre.id}`}
-                className="group relative h-32 sm:h-36 md:h-40 lg:h-44 rounded-xl overflow-hidden bg-card border border-border hover:border-primary transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                className="group relative rounded-2xl overflow-hidden bg-card hover:scale-[1.02] transition-all duration-300"
               >
-                {/* Background Image */}
-                {backdrop && (
-                  <img
-                    src={getImageUrl(backdrop, "w780")}
-                    alt={genre.name}
-                    className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
-                  />
-                )}
-
-                {/* Dark Overlay for better text readability */}
-                <div className="absolute inset-0 bg-background/70" />
-                
-                {/* Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-60`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/40" />
-
-                {/* Content */}
-                <div className="relative h-full flex flex-col items-center justify-center p-4 md:p-6">
-                  <Icon className="h-8 w-8 md:h-10 md:w-10 text-primary mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
-                  <h3 className="text-base md:text-lg lg:text-xl font-bold text-center text-foreground drop-shadow-md">{genre.name}</h3>
-                  {totalResults && (
-                    <p className="text-xs md:text-sm text-foreground/80 mt-1 drop-shadow-sm">
-                      {totalResults.toLocaleString()} movies
-                    </p>
-                  )}
+                {/* Background Images Collage */}
+                <div className="aspect-[16/10] relative">
+                  <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-0.5">
+                    {movies.slice(0, 4).map((movie, i) => (
+                      <div key={movie.id} className="overflow-hidden">
+                        <img
+                          src={getImageUrl(movie.backdrop_path || movie.poster_path, "w500")}
+                          alt=""
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Gradient Overlay */}
+                  <div className={cn(
+                    "absolute inset-0 bg-gradient-to-t opacity-90 group-hover:opacity-80 transition-opacity",
+                    colors.bg
+                  )} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
+                  
+                  {/* Content */}
+                  <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={cn(
+                        "p-2 rounded-lg bg-background/20 backdrop-blur-sm",
+                        colors.text
+                      )}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">{genre.name}</h3>
+                        {totalResults && (
+                          <p className="text-sm text-foreground/70">
+                            {totalResults.toLocaleString()} titles
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Hover Action */}
+                    <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all">
+                      <Badge className="bg-foreground text-background gap-1 px-3 py-1.5">
+                        <Play className="h-3 w-3 fill-current" />
+                        Explore
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </Link>
             );
