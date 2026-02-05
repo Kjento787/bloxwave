@@ -21,7 +21,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ReviewSection } from "@/components/ReviewSection";
 import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
-import { VideoPlayer } from "@/components/VideoPlayer";
+import { VideoPlayerRevamped } from "@/components/VideoPlayerRevamped";
 import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
 import { CommentsSection } from "@/components/CommentsSection";
 import { Button } from "@/components/ui/button";
@@ -195,7 +195,7 @@ const TVDetail = () => {
       />
 
       {isPlaying && (
-        <VideoPlayer
+        <VideoPlayerRevamped
           key={playerKey}
           contentId={tvShow.id}
           contentType="tv"

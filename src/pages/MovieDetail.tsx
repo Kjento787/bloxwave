@@ -25,7 +25,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ReviewSection } from "@/components/ReviewSection";
 import { TMDBReviews } from "@/components/TMDBReviews";
 import { WatchlistButton } from "@/components/WatchlistButton";
-import { VideoPlayer } from "@/components/VideoPlayer";
+import { VideoPlayerRevamped } from "@/components/VideoPlayerRevamped";
 import { CommentsSection } from "@/components/CommentsSection";
 import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
 import { Button } from "@/components/ui/button";
@@ -153,7 +153,7 @@ const MovieDetail = () => {
       />
 
       {isPlaying && (
-        <VideoPlayer
+        <VideoPlayerRevamped
           contentId={movie.id}
           contentType="movie"
           title={movie.title}
