@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, AlertTriangle } from "lucide-react";
 import { Movie, getImageUrl } from "@/lib/tmdb";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
@@ -11,10 +11,78 @@ interface LeavingSoonRowProps {
   className?: string;
 }
 
-// Mock "days left" - in real app this would come from your content database
-const getDaysLeft = (index: number) => {
-  const options = [3, 5, 7, 10, 14];
-  return options[index % options.length];
+// Mock expiration times - in production this would come from your database
+const getExpirationTime = (index: number): Date => {
+  const now = new Date();
+  const hoursOptions = [6, 12, 24, 48, 72, 120, 168, 240, 336];
+  const hoursLeft = hoursOptions[index % hoursOptions.length];
+  return new Date(now.getTime() + hoursLeft * 60 * 60 * 1000);
+};
+
+interface CountdownProps {
+  targetDate: Date;
+}
+
+const LiveCountdown = ({ targetDate }: CountdownProps) => {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isUrgent, setIsUrgent] = useState(false);
+
+  const calculateTimeLeft = useCallback(() => {
+    const now = new Date().getTime();
+    const target = targetDate.getTime();
+    const difference = target - now;
+
+    if (difference <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((difference % (1000 * 60)) / 1000),
+    };
+  }, [targetDate]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft();
+      setTimeLeft(newTimeLeft);
+      setIsUrgent(newTimeLeft.days === 0 && newTimeLeft.hours < 24);
+    }, 1000);
+
+    const initial = calculateTimeLeft();
+    setTimeLeft(initial);
+    setIsUrgent(initial.days === 0 && initial.hours < 24);
+
+    return () => clearInterval(timer);
+  }, [calculateTimeLeft]);
+
+  const formatNumber = (num: number) => String(num).padStart(2, '0');
+
+  if (timeLeft.days > 0) {
+    return (
+      <div className={cn(
+        "flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider",
+        timeLeft.days <= 3 
+          ? "bg-destructive text-destructive-foreground" 
+          : "bg-accent text-accent-foreground"
+      )}>
+        <Clock className="h-3 w-3" />
+        <span>{timeLeft.days}d {timeLeft.hours}h</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn(
+      "flex items-center gap-1 px-2 py-1 rounded font-mono text-[11px] font-bold",
+      isUrgent ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-accent text-accent-foreground"
+    )}>
+      {isUrgent && <AlertTriangle className="h-3 w-3" />}
+      <span>{formatNumber(timeLeft.hours)}:{formatNumber(timeLeft.minutes)}:{formatNumber(timeLeft.seconds)}</span>
+    </div>
+  );
 };
 
 export const LeavingSoonRow = ({ title = "Leaving Soon", movies, className }: LeavingSoonRowProps) => {
@@ -57,6 +125,7 @@ export const LeavingSoonRow = ({ title = "Leaving Soon", movies, className }: Le
       <div className="flex items-center gap-2 mb-3 px-4 md:px-8 lg:px-12">
         <Clock className="h-5 w-5 text-destructive" />
         <h2 className="text-xl md:text-2xl font-bold">{title}</h2>
+        <span className="text-xs text-muted-foreground ml-2">Live countdowns</span>
       </div>
 
       <div className="relative">
@@ -104,8 +173,9 @@ export const LeavingSoonRow = ({ title = "Leaving Soon", movies, className }: Le
           {movies.slice(0, 10).map((movie, index) => {
             const isTV = movie.media_type === "tv";
             const detailPath = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
-            const title = movie.title || movie.name;
-            const daysLeft = getDaysLeft(index);
+            const movieTitle = movie.title || movie.name;
+            const expirationDate = getExpirationTime(index);
+            const daysLeft = Math.ceil((expirationDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
             return (
               <Link
@@ -117,24 +187,18 @@ export const LeavingSoonRow = ({ title = "Leaving Soon", movies, className }: Le
                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden transition-all duration-300 group-hover/card:scale-105 group-hover/card:shadow-hover">
                   <img
                     src={getImageUrl(movie.poster_path, "w500")}
-                    alt={title}
+                    alt={movieTitle}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
                   
-                  {/* Countdown Badge */}
-                  <div className={cn(
-                    "absolute top-2 left-2 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1",
-                    daysLeft <= 3 
-                      ? "bg-destructive text-destructive-foreground" 
-                      : "bg-orange-500 text-white"
-                  )}>
-                    <Clock className="h-3 w-3" />
-                    {daysLeft} days
+                  {/* Live Countdown Badge */}
+                  <div className="absolute top-2 left-2">
+                    <LiveCountdown targetDate={expirationDate} />
                   </div>
 
                   {/* Urgent Border for items leaving very soon */}
-                  {daysLeft <= 3 && (
+                  {daysLeft <= 1 && (
                     <div className="absolute inset-0 rounded-lg border-2 border-destructive pointer-events-none animate-pulse" />
                   )}
 
@@ -143,9 +207,9 @@ export const LeavingSoonRow = ({ title = "Leaving Soon", movies, className }: Le
                 </div>
                 
                 <div className="mt-2">
-                  <h3 className="font-medium text-sm line-clamp-1">{title}</h3>
+                  <h3 className="font-medium text-sm line-clamp-1">{movieTitle}</h3>
                   <p className="text-xs text-destructive font-medium">
-                    Leaving in {daysLeft} days
+                    {daysLeft <= 0 ? "Leaving today!" : daysLeft === 1 ? "Last day!" : `${daysLeft} days left`}
                   </p>
                 </div>
               </Link>

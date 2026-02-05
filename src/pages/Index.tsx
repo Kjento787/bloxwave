@@ -29,7 +29,7 @@ import {
   Sparkles
 } from "lucide-react";
 
-// New HBO Max style components
+// Components
 import { Top10Row } from "@/components/home/Top10Row";
 import { HubSection } from "@/components/home/HubSection";
 import { SpotlightBanner } from "@/components/home/SpotlightBanner";
@@ -38,6 +38,8 @@ import { NewReleasesRow } from "@/components/home/NewReleasesRow";
 import { LeavingSoonRow } from "@/components/home/LeavingSoonRow";
 import { PreviewCarousel } from "@/components/home/PreviewCarousel";
 import { MovieCarousel } from "@/components/MovieCarousel";
+import { Recommendations } from "@/components/Recommendations";
+import { PageTransition } from "@/components/PageTransition";
 import { Movie } from "@/lib/tmdb";
 
 const Index = () => {
@@ -152,175 +154,180 @@ const Index = () => {
   const spotlightMovie2 = topRatedData?.results?.[3];
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <Navbar />
+    <PageTransition>
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        <Navbar />
 
-      {/* Hero Banner - Full Screen */}
-      {trendingData?.results && <HeroBanner movies={trendingData.results} />}
+        {/* Hero Banner */}
+        {trendingData?.results && <HeroBanner movies={trendingData.results} />}
 
-      {/* Main Content - Overlapping Hero */}
-      <main className="relative z-10 -mt-24 md:-mt-32 lg:-mt-40 space-y-8 md:space-y-10 lg:space-y-12">
-        
-        {/* Continue Watching */}
-        {continueWatchingMovies.length > 0 && (
-          <MovieCarousel
-            title="Continue Watching"
-            movies={continueWatchingMovies}
-            showProgress
-            progressData={progressData}
-            icon={<History className="h-5 w-5 text-primary" />}
-          />
-        )}
+        {/* Main Content */}
+        <main className="relative z-10 -mt-24 md:-mt-32 lg:-mt-40 space-y-8 md:space-y-10 lg:space-y-12">
+          
+          {/* Continue Watching */}
+          {continueWatchingMovies.length > 0 && (
+            <MovieCarousel
+              title="Continue Watching"
+              movies={continueWatchingMovies}
+              showProgress
+              progressData={progressData}
+              icon={<History className="h-5 w-5 text-primary" />}
+            />
+          )}
 
-        {/* Top 10 Trending */}
-        {trendingAllData?.results && (
-          <Top10Row 
-            title="in Your Country Today" 
-            movies={trendingAllData.results} 
-          />
-        )}
+          {/* Personalized Recommendations */}
+          <Recommendations />
 
-        {/* Mood Browser */}
-        <MoodBrowser />
+          {/* Top 10 Trending */}
+          {trendingAllData?.results && (
+            <Top10Row 
+              title="in Your Country Today" 
+              movies={trendingAllData.results} 
+            />
+          )}
 
-        {/* Just Added / New Releases */}
-        {nowPlayingData?.results && (
-          <NewReleasesRow 
-            title="Just Added" 
-            movies={nowPlayingData.results} 
-          />
-        )}
+          {/* Mood Browser */}
+          <MoodBrowser />
 
-        {/* Spotlight Banner 1 */}
-        {spotlightMovie && (
-          <SpotlightBanner 
-            movie={spotlightMovie} 
-            label="Spotlight" 
-          />
-        )}
+          {/* Just Added */}
+          {nowPlayingData?.results && (
+            <NewReleasesRow 
+              title="Just Added" 
+              movies={nowPlayingData.results} 
+            />
+          )}
 
-        {/* Popular with Quick Previews */}
-        {popularData?.results && (
-          <PreviewCarousel
-            title="Popular Right Now"
-            movies={popularData.results}
-            icon={<Flame className="h-5 w-5 text-orange-500" />}
-          />
-        )}
+          {/* Spotlight Banner 1 */}
+          {spotlightMovie && (
+            <SpotlightBanner 
+              movie={spotlightMovie} 
+              label="Spotlight" 
+            />
+          )}
 
-        {/* Action Hub */}
-        {actionData?.results && (
-          <HubSection
-            title="Action Hub"
-            icon={Swords}
-            movies={actionData.results}
-            genreId={28}
-            accentColor="hsl(0, 84%, 60%)"
-          />
-        )}
+          {/* Popular */}
+          {popularData?.results && (
+            <PreviewCarousel
+              title="Popular Right Now"
+              movies={popularData.results}
+              icon={<Flame className="h-5 w-5 text-orange-500" />}
+            />
+          )}
 
-        {/* Trending TV Shows */}
-        {trendingTVData?.results && (
-          <PreviewCarousel
-            title="Trending TV Shows"
-            movies={trendingTVData.results}
-            icon={<Tv className="h-5 w-5 text-blue-500" />}
-          />
-        )}
+          {/* Action Hub */}
+          {actionData?.results && (
+            <HubSection
+              title="Action Hub"
+              icon={Swords}
+              movies={actionData.results}
+              genreId={28}
+              accentColor="hsl(0, 84%, 60%)"
+            />
+          )}
 
-        {/* Comedy Hub */}
-        {comedyData?.results && (
-          <HubSection
-            title="Comedy Hub"
-            icon={Laugh}
-            movies={comedyData.results}
-            genreId={35}
-            accentColor="hsl(45, 93%, 47%)"
-          />
-        )}
+          {/* Trending TV Shows */}
+          {trendingTVData?.results && (
+            <PreviewCarousel
+              title="Trending TV Shows"
+              movies={trendingTVData.results}
+              icon={<Tv className="h-5 w-5 text-blue-500" />}
+            />
+          )}
 
-        {/* Spotlight Banner 2 */}
-        {spotlightMovie2 && (
-          <SpotlightBanner 
-            movie={spotlightMovie2} 
-            label="Editor's Pick" 
-          />
-        )}
+          {/* Comedy Hub */}
+          {comedyData?.results && (
+            <HubSection
+              title="Comedy Hub"
+              icon={Laugh}
+              movies={comedyData.results}
+              genreId={35}
+              accentColor="hsl(45, 93%, 47%)"
+            />
+          )}
 
-        {/* Top Rated with Previews */}
-        {topRatedData?.results && (
-          <PreviewCarousel
-            title="Critically Acclaimed"
-            movies={topRatedData.results}
-            icon={<Star className="h-5 w-5 text-yellow-500" />}
-          />
-        )}
+          {/* Spotlight Banner 2 */}
+          {spotlightMovie2 && (
+            <SpotlightBanner 
+              movie={spotlightMovie2} 
+              label="Editor's Pick" 
+            />
+          )}
 
-        {/* Horror Hub */}
-        {horrorData?.results && (
-          <HubSection
-            title="Horror Hub"
-            icon={Ghost}
-            movies={horrorData.results}
-            genreId={27}
-            accentColor="hsl(270, 50%, 40%)"
-          />
-        )}
+          {/* Top Rated */}
+          {topRatedData?.results && (
+            <PreviewCarousel
+              title="Critically Acclaimed"
+              movies={topRatedData.results}
+              icon={<Star className="h-5 w-5 text-yellow-500" />}
+            />
+          )}
 
-        {/* Sci-Fi Hub */}
-        {scifiData?.results && (
-          <HubSection
-            title="Sci-Fi Hub"
-            icon={Rocket}
-            movies={scifiData.results}
-            genreId={878}
-            accentColor="hsl(200, 100%, 50%)"
-          />
-        )}
+          {/* Horror Hub */}
+          {horrorData?.results && (
+            <HubSection
+              title="Horror Hub"
+              icon={Ghost}
+              movies={horrorData.results}
+              genreId={27}
+              accentColor="hsl(270, 50%, 40%)"
+            />
+          )}
 
-        {/* Leaving Soon */}
-        {topRatedData?.results && (
-          <LeavingSoonRow 
-            title="Last Chance to Watch" 
-            movies={topRatedData.results.slice(10, 20)} 
-          />
-        )}
+          {/* Sci-Fi Hub */}
+          {scifiData?.results && (
+            <HubSection
+              title="Sci-Fi Hub"
+              icon={Rocket}
+              movies={scifiData.results}
+              genreId={878}
+              accentColor="hsl(200, 100%, 50%)"
+            />
+          )}
 
-        {/* Romance Hub */}
-        {romanceData?.results && (
-          <HubSection
-            title="Romance Hub"
-            icon={Heart}
-            movies={romanceData.results}
-            genreId={10749}
-            accentColor="hsl(340, 82%, 52%)"
-          />
-        )}
+          {/* Leaving Soon with Live Countdowns */}
+          {topRatedData?.results && (
+            <LeavingSoonRow 
+              title="Last Chance to Watch" 
+              movies={topRatedData.results.slice(10, 20)} 
+            />
+          )}
 
-        {/* Anime Hub */}
-        {animeData?.results && (
-          <HubSection
-            title="Anime Hub"
-            icon={Sparkles}
-            movies={animeData.results}
-            searchQuery="anime"
-            accentColor="hsl(280, 100%, 60%)"
-          />
-        )}
+          {/* Romance Hub */}
+          {romanceData?.results && (
+            <HubSection
+              title="Romance Hub"
+              icon={Heart}
+              movies={romanceData.results}
+              genreId={10749}
+              accentColor="hsl(340, 82%, 52%)"
+            />
+          )}
 
-        {/* Coming Soon */}
-        {upcomingData?.results && (
-          <MovieCarousel
-            title="Coming Soon"
-            movies={upcomingData.results}
-            icon={<Sparkles className="h-5 w-5 text-primary" />}
-          />
-        )}
+          {/* Anime Hub */}
+          {animeData?.results && (
+            <HubSection
+              title="Anime Hub"
+              icon={Sparkles}
+              movies={animeData.results}
+              searchQuery="anime"
+              accentColor="hsl(280, 100%, 60%)"
+            />
+          )}
 
-      </main>
+          {/* Coming Soon */}
+          {upcomingData?.results && (
+            <MovieCarousel
+              title="Coming Soon"
+              movies={upcomingData.results}
+              icon={<Sparkles className="h-5 w-5 text-primary" />}
+            />
+          )}
 
-      <Footer />
-    </div>
+        </main>
+
+        <Footer />
+      </div>
+    </PageTransition>
   );
 };
 

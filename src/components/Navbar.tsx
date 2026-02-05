@@ -76,6 +76,7 @@ export const Navbar = () => {
     { href: "/", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/genres", label: "Series" },
+    { href: "/hubs", label: "Hubs" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
