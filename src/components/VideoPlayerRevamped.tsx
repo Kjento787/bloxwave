@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { 
   X, Maximize, Minimize, ShieldCheck, Server, Captions, 
-  SkipForward, SkipBack, ChevronDown, Settings, Check,
-  Tv, Monitor, Smartphone
+  SkipForward, SkipBack, ChevronDown, Check,
+  Tv, Monitor, Smartphone, Keyboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { KeyboardShortcutsOverlay } from "@/components/player/KeyboardShortcutsOverlay";
+import { ShareButton } from "@/components/player/ShareButton";
+import { useWatchHistory } from "@/hooks/useWatchHistory";
+import { useAdBlocker } from "@/hooks/useAdBlocker";
 
 interface VideoPlayerProps {
   contentId: number;
@@ -60,8 +64,11 @@ export const VideoPlayerRevamped = ({
   const [popupBlocked, setPopupBlocked] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [serverPanelOpen, setServerPanelOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
+  const { addToHistory } = useWatchHistory();
+  const { enabled: adBlockerEnabled } = useAdBlocker();
 
   const currentServer = EMBED_SERVERS.find(s => s.id === selectedServer) || EMBED_SERVERS[0];
   const embedUrl = getEmbedUrl(contentId, contentType, season, episode, selectedServer);
@@ -117,15 +124,29 @@ export const VideoPlayerRevamped = ({
     }
   };
 
-  // Block popups
+  // Block popups (only if ad blocker enabled)
   useEffect(() => {
+    if (!adBlockerEnabled) return;
     const originalOpen = window.open;
     window.open = function(...args) {
       setPopupBlocked(prev => prev + 1);
       return null;
     };
     return () => { window.open = originalOpen; };
-  }, []);
+  }, [adBlockerEnabled]);
+
+  // Track watch history
+  useEffect(() => {
+    addToHistory({
+      contentId,
+      contentType,
+      title,
+      posterPath: null,
+      season,
+      episode,
+      server: selectedServer,
+    });
+  }, [contentId, contentType, season, episode, selectedServer]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -140,6 +161,7 @@ export const VideoPlayerRevamped = ({
       resetHideTimer();
       if (e.key === "Escape" && !document.fullscreenElement) onClose();
       if (e.key === "f" || e.key === "F") toggleFullscreen();
+      if (e.key === "?") setShowShortcuts(prev => !prev);
       if (contentType === "tv") {
         if (e.key === "ArrowRight" && e.shiftKey && onNextEpisode) onNextEpisode();
         if (e.key === "ArrowLeft" && e.shiftKey && onPreviousEpisode) onPreviousEpisode();
@@ -150,9 +172,11 @@ export const VideoPlayerRevamped = ({
   }, [onClose, onNextEpisode, onPreviousEpisode, contentType, resetHideTimer]);
 
   useEffect(() => {
-    document.body.classList.add('ad-blocker-active');
-    return () => document.body.classList.remove('ad-blocker-active');
-  }, []);
+    if (adBlockerEnabled) {
+      document.body.classList.add('ad-blocker-active');
+      return () => document.body.classList.remove('ad-blocker-active');
+    }
+  }, [adBlockerEnabled]);
 
   const canGoPrevious = contentType === "tv" && episode !== undefined && (episode > 1 || (season !== undefined && season > 1));
   const canGoNext = contentType === "tv" && episode !== undefined && totalEpisodes !== undefined && 
@@ -187,15 +211,17 @@ export const VideoPlayerRevamped = ({
                 <p className="text-sm text-white/60 truncate">{subtitle}</p>
               )}
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium flex-shrink-0">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Protected</span>
-              {popupBlocked > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-emerald-500/30 rounded-full text-[10px] font-bold">
-                  {popupBlocked}
-                </span>
-              )}
-            </div>
+            {adBlockerEnabled && (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium flex-shrink-0">
+                <ShieldCheck className="h-4 w-4" />
+                <span>Protected</span>
+                {popupBlocked > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-emerald-500/30 rounded-full text-[10px] font-bold">
+                    {popupBlocked}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Right - Controls */}
@@ -265,6 +291,26 @@ export const VideoPlayerRevamped = ({
                 </ScrollArea>
               </SheetContent>
             </Sheet>
+
+            {/* Share */}
+            <ShareButton
+              contentId={contentId}
+              contentType={contentType}
+              title={title}
+              season={season}
+              episode={episode}
+            />
+
+            {/* Keyboard Shortcuts */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowShortcuts(true)}
+              className="hidden md:flex h-10 w-10 md:h-11 md:w-11 text-white/80 hover:text-white hover:bg-white/10"
+              title="Keyboard shortcuts (?)"
+            >
+              <Keyboard className="h-5 w-5" />
+            </Button>
 
             <Button 
               variant="ghost" 
@@ -404,6 +450,9 @@ export const VideoPlayerRevamped = ({
           </div>
         </div>
       )}
+
+      {/* Keyboard Shortcuts Overlay */}
+      <KeyboardShortcutsOverlay visible={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </div>
   );
 };
