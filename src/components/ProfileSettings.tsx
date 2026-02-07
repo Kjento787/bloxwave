@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Save, User } from 'lucide-react';
+import { Camera, Save, User, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,12 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/hooks/useTheme';
+import { useAdBlocker } from '@/hooks/useAdBlocker';
 
 export const ProfileSettings = () => {
   const { profile, loading, updateProfile, uploadAvatar } = useProfile();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const { enabled: adBlockerEnabled, toggle: toggleAdBlocker } = useAdBlocker();
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [saving, setSaving] = useState(false);
@@ -150,6 +151,23 @@ export const ProfileSettings = () => {
           <Switch
             checked={theme === 'dark'}
             onCheckedChange={handleThemeChange}
+          />
+        </div>
+
+        {/* Ad Blocker Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              Ad Blocker
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Blocks popups & redirects from video servers. Cannot block in-player ads.
+            </p>
+          </div>
+          <Switch
+            checked={adBlockerEnabled}
+            onCheckedChange={toggleAdBlocker}
           />
         </div>
 
