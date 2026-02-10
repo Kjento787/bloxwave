@@ -16,6 +16,7 @@ import {
   discoverTV,
 } from "@/lib/tmdb";
 import { getContinueWatching, WatchProgress } from "@/lib/watchHistory";
+import { useWatchHistory, WatchHistoryEntry } from "@/hooks/useWatchHistory";
 import { 
   History, 
   Flame, 
@@ -44,10 +45,30 @@ import { Movie } from "@/lib/tmdb";
 
 const Index = () => {
   const [continueWatching, setContinueWatching] = useState<WatchProgress[]>([]);
+  const { getHistory } = useWatchHistory();
 
   useEffect(() => {
-    setContinueWatching(getContinueWatching());
-  }, []);
+    const progressItems = getContinueWatching();
+    const historyItems = getHistory();
+    
+    // Merge watch history entries that aren't already in continue watching
+    const progressIds = new Set(progressItems.map(p => p.movieId));
+    const historyAsMovies: WatchProgress[] = historyItems
+      .filter(h => !progressIds.has(h.contentId))
+      .slice(0, 10)
+      .map(h => ({
+        movieId: h.contentId,
+        title: h.title,
+        posterPath: h.posterPath,
+        backdropPath: null,
+        progress: 0,
+        currentTime: 0,
+        duration: 0,
+        lastWatched: h.lastWatched,
+      }));
+
+    setContinueWatching([...progressItems, ...historyAsMovies].slice(0, 15));
+  }, [getHistory]);
 
   // Core data
   const { data: trendingData, isLoading: trendingLoading } = useQuery({
