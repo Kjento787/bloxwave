@@ -242,8 +242,15 @@ const TVDetail = () => {
       {/* Immersive Hero */}
       <section className="relative min-h-screen">
         <div className="absolute inset-0">
-          {showPreview && trailer ? (
-            <div className="w-full h-full">
+          {/* Always render backdrop image as fallback */}
+          <img
+            src={getImageUrl(tvShow.backdrop_path, "original")}
+            alt={tvShow.name}
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay YouTube preview on top if available */}
+          {showPreview && trailer && (
+            <div className="absolute inset-0">
               <iframe
                 src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${previewMuted ? 1 : 0}&controls=0&loop=1&playlist=${trailer.key}&modestbranding=1&showinfo=0`}
                 className="w-full h-full object-cover scale-125"
@@ -251,12 +258,6 @@ const TVDetail = () => {
                 style={{ pointerEvents: 'none' }}
               />
             </div>
-          ) : (
-            <img
-              src={getImageUrl(tvShow.backdrop_path, "original")}
-              alt={tvShow.name}
-              className="w-full h-full object-cover"
-            />
           )}
           
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/40" />
