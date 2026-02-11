@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { 
   X, Maximize, Minimize, ShieldCheck, Server, Captions, 
   SkipForward, SkipBack, ChevronDown, Check,
-  Tv, Monitor, Smartphone, Keyboard
+  Tv, Monitor, Smartphone, Keyboard, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ import { KeyboardShortcutsOverlay } from "@/components/player/KeyboardShortcutsO
 import { ShareButton } from "@/components/player/ShareButton";
 import { useWatchHistory } from "@/hooks/useWatchHistory";
 import { useAdBlocker } from "@/hooks/useAdBlocker";
+import { useServerHealth } from "@/hooks/useServerHealth";
 
 interface VideoPlayerProps {
   contentId: number;
@@ -67,11 +68,23 @@ export const VideoPlayerRevamped = ({
   const [showShortcuts, setShowShortcuts] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { addToHistory } = useWatchHistory();
   const { enabled: adBlockerEnabled } = useAdBlocker();
+  const { reportFailure, reportSuccess, getAliveServers, isServerDead } = useServerHealth();
 
-  const currentServer = EMBED_SERVERS.find(s => s.id === selectedServer) || EMBED_SERVERS[0];
-  const embedUrl = getEmbedUrl(contentId, contentType, season, episode, selectedServer);
+  const aliveServers = getAliveServers(EMBED_SERVERS);
+  const currentServer = aliveServers.find(s => s.id === selectedServer) || aliveServers[0];
+  const embedUrl = getEmbedUrl(contentId, contentType, season, episode, currentServer.id);
+
+  // If selected server became dead, auto-switch to first alive server
+  useEffect(() => {
+    if (isServerDead(selectedServer) && aliveServers.length > 0) {
+      const next = aliveServers[0];
+      setSelectedServer(next.id);
+      setIsLoading(true);
+    }
+  }, [selectedServer, isServerDead, aliveServers]);
 
   const handleServerChange = (serverId: string) => {
     setIsLoading(true);
@@ -79,6 +92,25 @@ export const VideoPlayerRevamped = ({
     setPopupBlocked(0);
     setServerPanelOpen(false);
   };
+
+  // Timeout-based failure detection: if iframe doesn't load within 15s, mark server as failed
+  useEffect(() => {
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    loadTimeoutRef.current = setTimeout(() => {
+      if (isLoading) {
+        reportFailure(currentServer.id);
+        // Auto-switch to next alive server
+        const remaining = aliveServers.filter(s => s.id !== currentServer.id);
+        if (remaining.length > 0) {
+          setSelectedServer(remaining[0].id);
+          setIsLoading(true);
+        }
+      }
+    }, 15000);
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
+  }, [currentServer.id, isLoading, aliveServers]);
 
   // Auto-hide controls
   const resetHideTimer = useCallback(() => {
@@ -248,45 +280,55 @@ export const VideoPlayerRevamped = ({
                 </SheetHeader>
                 <ScrollArea className="h-[calc(100%-80px)] mt-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pr-4">
-                    {EMBED_SERVERS.map((server) => (
-                      <button
-                        key={server.id}
-                        onClick={() => handleServerChange(server.id)}
-                        className={cn(
-                          "relative p-4 rounded-xl border-2 transition-all duration-200 text-left",
-                          "hover:scale-[1.02] hover:shadow-lg",
-                          selectedServer === server.id
-                            ? "border-primary bg-primary/10 shadow-md shadow-primary/20"
-                            : "border-border bg-card hover:border-primary/50"
-                        )}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-lg">{server.name}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              {server.hasSubtitles && (
-                                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
-                                  <Captions className="h-3 w-3" />
-                                  Subtitles
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {selectedServer === server.id && (
-                            <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                              <Check className="h-4 w-4 text-primary-foreground" />
-                            </div>
+                    {EMBED_SERVERS.map((server) => {
+                      const dead = isServerDead(server.id);
+                      return (
+                        <button
+                          key={server.id}
+                          onClick={() => !dead && handleServerChange(server.id)}
+                          disabled={dead}
+                          className={cn(
+                            "relative p-4 rounded-xl border-2 transition-all duration-200 text-left",
+                            dead
+                              ? "border-destructive/30 bg-destructive/5 opacity-50 cursor-not-allowed"
+                              : "hover:scale-[1.02] hover:shadow-lg",
+                            !dead && selectedServer === server.id
+                              ? "border-primary bg-primary/10 shadow-md shadow-primary/20"
+                              : !dead && "border-border bg-card hover:border-primary/50"
                           )}
-                        </div>
-                        
-                        {/* Device compatibility indicators */}
-                        <div className="flex items-center gap-3 mt-3 text-muted-foreground">
-                          <Smartphone className="h-4 w-4" aria-label="Mobile" />
-                          <Monitor className="h-4 w-4" aria-label="Desktop" />
-                          <Tv className="h-4 w-4" aria-label="TV" />
-                        </div>
-                      </button>
-                    ))}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-lg">{server.name}</h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                {dead ? (
+                                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Unavailable
+                                  </span>
+                                ) : server.hasSubtitles && (
+                                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                                    <Captions className="h-3 w-3" />
+                                    Subtitles
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {!dead && selectedServer === server.id && (
+                              <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                                <Check className="h-4 w-4 text-primary-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-3 mt-3 text-muted-foreground">
+                            <Smartphone className="h-4 w-4" aria-label="Mobile" />
+                            <Monitor className="h-4 w-4" aria-label="Desktop" />
+                            <Tv className="h-4 w-4" aria-label="TV" />
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               </SheetContent>
@@ -345,7 +387,7 @@ export const VideoPlayerRevamped = ({
           allowFullScreen={true}
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
           referrerPolicy="no-referrer"
-          onLoad={() => setIsLoading(false)}
+          onLoad={() => { setIsLoading(false); reportSuccess(currentServer.id); }}
           sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups"
           style={{ border: 'none' }}
         />
