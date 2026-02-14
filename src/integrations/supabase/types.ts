@@ -376,6 +376,36 @@ export type Database = {
         }
         Relationships: []
       }
+      viewer_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          is_kids: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_kids?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_kids?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       watchlists: {
         Row: {
           added_at: string
