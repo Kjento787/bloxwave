@@ -46,7 +46,7 @@ const Banned = () => {
               <ShieldX className="w-16 h-16 text-destructive" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Account Suspended</h1>
+          <h1 className="text-3xl font-bold text-foreground font-display">Account Suspended</h1>
           <p className="text-muted-foreground mt-2">
             Your account has been suspended from accessing this platform
           </p>
