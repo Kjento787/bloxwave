@@ -158,7 +158,7 @@ export const ProfileSettings = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <ShieldCheck className="h-4 w-4 text-primary" />
               Ad Blocker
             </Label>
             <p className="text-sm text-muted-foreground">

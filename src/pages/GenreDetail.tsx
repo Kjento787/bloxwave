@@ -64,13 +64,13 @@ const GenreDetail = () => {
                 </Badge>
                 {featuredMovie.vote_average && (
                   <Badge variant="outline" className="gap-1">
-                    <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                    <Star className="h-3 w-3 fill-primary text-primary" />
                     {featuredMovie.vote_average.toFixed(1)}
                   </Badge>
                 )}
               </div>
 
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-shadow-lg">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-shadow-lg font-display">
                 {featuredMovie.title}
               </h1>
 

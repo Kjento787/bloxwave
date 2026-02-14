@@ -153,7 +153,7 @@ export const TMDBReviews = ({ contentId, contentType }: TMDBReviewsProps) => {
                 
                 {review.author_details.rating && (
                   <Badge variant="secondary" className="gap-1 shrink-0">
-                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-3 w-3 text-primary fill-primary" />
                     {review.author_details.rating}/10
                   </Badge>
                 )}

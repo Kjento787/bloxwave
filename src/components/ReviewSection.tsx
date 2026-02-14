@@ -45,7 +45,7 @@ export const ReviewSection = ({ contentId, contentType, isAuthenticated }: Revie
           <h2 className="text-2xl font-bold">Reviews</h2>
           {averageRating && (
             <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10">
-              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+              <Star className="h-4 w-4 text-primary fill-primary" />
               <span className="font-semibold">{averageRating.toFixed(1)}</span>
               <span className="text-sm text-muted-foreground">({reviews?.length})</span>
             </div>
@@ -92,7 +92,7 @@ export const ReviewSection = ({ contentId, contentType, isAuthenticated }: Revie
                   className={cn(
                     "h-6 w-6 transition-colors",
                     star <= displayRating
-                      ? "text-yellow-500 fill-yellow-500"
+                      ? "text-primary fill-primary"
                       : "text-muted-foreground"
                   )}
                 />
@@ -157,7 +157,7 @@ export const ReviewSection = ({ contentId, contentType, isAuthenticated }: Revie
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  <Star className="h-4 w-4 text-primary fill-primary" />
                   <span className="font-semibold">{review.rating}</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
