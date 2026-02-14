@@ -6,14 +6,16 @@ import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 
 interface QuickPreviewCardProps {
   movie: Movie;
   className?: string;
   style?: React.CSSProperties;
+  index?: number;
 }
 
-export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardProps) => {
+export const QuickPreviewCard = ({ movie, className, style, index = 0 }: QuickPreviewCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -28,7 +30,6 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
   const inList = isInWatchlist(movie.id, contentType);
   const isPending = addToWatchlist.isPending || removeFromWatchlist.isPending;
 
-  // Fetch video on hover
   const { data: videoData } = useQuery({
     queryKey: ["video-preview", movie.id, contentType],
     queryFn: () => isTV ? fetchTVVideos(movie.id) : fetchMovieVideos(movie.id),
@@ -60,7 +61,14 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        duration: 0.5, 
+        delay: index * 0.05,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       className={cn(
         "group relative flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px]",
         className
@@ -70,27 +78,23 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
       onMouseLeave={handleMouseLeave}
     >
       <Link to={detailPath} className="block">
-        {/* Main Card */}
         <div className={cn(
-          "relative rounded-lg overflow-hidden transition-all duration-300",
-          isHovered && "scale-[1.15] z-30 shadow-2xl"
+          "relative rounded-xl overflow-hidden transition-all duration-500",
+          isHovered && "scale-[1.12] z-30 shadow-[0_25px_60px_-15px_hsl(var(--primary)/0.25)]"
         )}>
-          {/* Poster / Video */}
-          <div className="aspect-[2/3] relative bg-secondary">
+          <div className="aspect-[2/3] relative bg-secondary rounded-xl overflow-hidden">
             {!imageLoaded && (
-              <div className="absolute inset-0 animate-shimmer" />
+              <div className="absolute inset-0 animate-shimmer rounded-xl" />
             )}
             
-            {/* Show video preview on hover if available */}
             {isHovered && trailer ? (
-              <div className="absolute inset-0 bg-black">
+              <div className="absolute inset-0 bg-background">
                 <iframe
                   src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&rel=0&showinfo=0`}
                   className="w-full h-full"
                   allow="autoplay"
                   title={title}
                 />
-                {/* Mute Toggle */}
                 <Button
                   size="icon"
                   variant="ghost"
@@ -109,7 +113,8 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
                 src={getImageUrl(movie.poster_path, "w500")}
                 alt={title}
                 className={cn(
-                  "w-full h-full object-cover transition-opacity",
+                  "w-full h-full object-cover transition-all duration-700",
+                  isHovered ? "scale-110 brightness-75" : "scale-100",
                   imageLoaded ? "opacity-100" : "opacity-0"
                 )}
                 loading="lazy"
@@ -117,10 +122,16 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
               />
             )}
 
+            {/* Glow ring */}
+            <div className={cn(
+              "absolute inset-0 rounded-xl transition-all duration-500 pointer-events-none",
+              isHovered ? "ring-1 ring-primary/30 ring-inset" : ""
+            )} />
+
             {/* Rating Badge */}
             {movie.vote_average > 0 && !isHovered && (
-              <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm text-xs font-semibold">
-                <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+              <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-full bg-background/70 backdrop-blur-md text-[10px] font-bold">
+                <Star className="h-3 w-3 text-primary fill-primary" />
                 {movie.vote_average.toFixed(1)}
               </div>
             )}
@@ -128,19 +139,18 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
 
           {/* Expanded Info on Hover */}
           {isHovered && (
-            <div className="absolute left-0 right-0 -bottom-1 translate-y-full bg-card rounded-b-lg p-3 shadow-2xl animate-fade-in">
-              {/* Actions */}
+            <div className="absolute left-0 right-0 -bottom-1 translate-y-full bg-card/95 backdrop-blur-xl rounded-b-xl p-3 shadow-2xl border-t border-border/20 animate-fade-in">
               <div className="flex items-center gap-2 mb-2">
                 <Button 
                   size="icon" 
-                  className="h-9 w-9 rounded-full bg-foreground text-background hover:bg-foreground/90"
+                  className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Play className="h-4 w-4 fill-current" />
                 </Button>
                 <Button
                   size="icon"
                   variant="secondary"
-                  className="h-9 w-9 rounded-full"
+                  className="h-9 w-9 rounded-full border border-foreground/10"
                   onClick={toggleWatchList}
                   disabled={isPending}
                 >
@@ -155,35 +165,32 @@ export const QuickPreviewCard = ({ movie, className, style }: QuickPreviewCardPr
                 <Button
                   size="icon"
                   variant="secondary"
-                  className="h-9 w-9 rounded-full ml-auto"
+                  className="h-9 w-9 rounded-full border border-foreground/10 ml-auto"
                 >
                   <Info className="h-4 w-4" />
                 </Button>
               </div>
 
-              {/* Title */}
-              <h3 className="font-semibold text-sm line-clamp-1 mb-1">{title}</h3>
+              <h3 className="font-bold text-sm line-clamp-1 mb-1 font-display">{title}</h3>
               
-              {/* Meta */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="text-green-500 font-semibold">
+                <span className="text-primary font-bold">
                   {Math.round(movie.vote_average * 10)}% Match
                 </span>
                 <span>{year}</span>
-                <span className="px-1 border border-muted-foreground/50 rounded text-[10px]">HD</span>
+                <span className="px-1.5 border border-foreground/20 rounded text-[10px] font-bold">HD</span>
               </div>
             </div>
           )}
         </div>
       </Link>
 
-      {/* Title Below - Only when not hovered */}
       {!isHovered && (
         <div className="mt-2 px-1">
           <h3 className="font-medium text-sm line-clamp-1">{title}</h3>
           <p className="text-xs text-muted-foreground">{year}</p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
