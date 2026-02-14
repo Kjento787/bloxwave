@@ -353,6 +353,18 @@
     @apply -translate-y-1;
   }
 
+  /* Floating animation for bokeh particles */
+  .animate-float {
+    animation: float ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(-10px) translateX(-5px); }
+    75% { transform: translateY(-25px) translateX(8px); }
+  }
+
   /* TV Screen Optimizations */
   @media (min-width: 1920px) {
     .tv\:text-lg { font-size: 1.125rem; line-height: 1.75rem; }

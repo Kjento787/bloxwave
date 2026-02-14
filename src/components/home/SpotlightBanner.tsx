@@ -49,7 +49,7 @@ export const SpotlightBanner = ({ movie, label = "Featured", className }: Spotli
 
           {/* Meta */}
           <div className="flex items-center gap-3 mb-3 text-sm">
-            <div className="flex items-center gap-1 text-yellow-400">
+            <div className="flex items-center gap-1 text-primary">
               <Star className="h-4 w-4 fill-current" />
               <span className="font-bold">{movie.vote_average?.toFixed(1)}</span>
             </div>
