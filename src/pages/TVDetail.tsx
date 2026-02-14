@@ -298,7 +298,7 @@ const TVDetail = () => {
                   18+
                 </Badge>
               )}
-              <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30 px-3 py-1">
+              <Badge className="bg-primary/20 text-primary border-primary/30 px-3 py-1">
                 <Star className="h-3.5 w-3.5 mr-1 fill-current" />
                 {tvShow.vote_average.toFixed(1)}
               </Badge>
@@ -307,7 +307,7 @@ const TVDetail = () => {
               </Badge>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-shadow-lg">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-shadow-lg font-display">
               {tvShow.name}
             </h1>
 

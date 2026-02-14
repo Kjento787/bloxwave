@@ -47,24 +47,24 @@ const genreIcons: Record<number, React.ElementType> = {
 };
 
 const genreColors: Record<number, { bg: string; text: string }> = {
-  28: { bg: "from-red-600/30 to-orange-600/30", text: "text-red-400" },
-  12: { bg: "from-emerald-600/30 to-green-600/30", text: "text-emerald-400" },
-  16: { bg: "from-pink-600/30 to-purple-600/30", text: "text-pink-400" },
-  35: { bg: "from-yellow-600/30 to-amber-600/30", text: "text-yellow-400" },
-  80: { bg: "from-slate-600/30 to-gray-600/30", text: "text-slate-400" },
-  99: { bg: "from-blue-600/30 to-cyan-600/30", text: "text-blue-400" },
-  18: { bg: "from-violet-600/30 to-purple-600/30", text: "text-violet-400" },
-  10751: { bg: "from-pink-600/30 to-rose-600/30", text: "text-pink-400" },
-  14: { bg: "from-indigo-600/30 to-blue-600/30", text: "text-indigo-400" },
-  36: { bg: "from-amber-600/30 to-yellow-600/30", text: "text-amber-400" },
-  27: { bg: "from-gray-600/30 to-slate-600/30", text: "text-gray-400" },
-  10402: { bg: "from-fuchsia-600/30 to-pink-600/30", text: "text-fuchsia-400" },
-  9648: { bg: "from-teal-600/30 to-cyan-600/30", text: "text-teal-400" },
-  10749: { bg: "from-rose-600/30 to-pink-600/30", text: "text-rose-400" },
-  878: { bg: "from-cyan-600/30 to-blue-600/30", text: "text-cyan-400" },
-  53: { bg: "from-red-600/30 to-rose-600/30", text: "text-red-400" },
-  10752: { bg: "from-stone-600/30 to-gray-600/30", text: "text-stone-400" },
-  37: { bg: "from-orange-600/30 to-amber-600/30", text: "text-orange-400" },
+  28: { bg: "from-primary/30 to-primary/10", text: "text-primary" },
+  12: { bg: "from-primary/25 to-accent/20", text: "text-primary" },
+  16: { bg: "from-primary/20 to-primary/10", text: "text-primary" },
+  35: { bg: "from-primary/30 to-primary/15", text: "text-primary" },
+  80: { bg: "from-muted/40 to-muted/20", text: "text-primary" },
+  99: { bg: "from-primary/20 to-accent/15", text: "text-primary" },
+  18: { bg: "from-primary/25 to-primary/10", text: "text-primary" },
+  10751: { bg: "from-primary/20 to-accent/15", text: "text-primary" },
+  14: { bg: "from-primary/25 to-accent/20", text: "text-primary" },
+  36: { bg: "from-primary/30 to-primary/15", text: "text-primary" },
+  27: { bg: "from-muted/40 to-muted/20", text: "text-primary" },
+  10402: { bg: "from-primary/25 to-accent/15", text: "text-primary" },
+  9648: { bg: "from-primary/20 to-accent/15", text: "text-primary" },
+  10749: { bg: "from-primary/25 to-primary/10", text: "text-primary" },
+  878: { bg: "from-primary/20 to-accent/20", text: "text-primary" },
+  53: { bg: "from-muted/40 to-muted/20", text: "text-primary" },
+  10752: { bg: "from-primary/25 to-primary/10", text: "text-primary" },
+  37: { bg: "from-primary/30 to-primary/15", text: "text-primary" },
 };
 
 const Genres = () => {
@@ -102,7 +102,7 @@ const Genres = () => {
       <section className="pt-24 pb-12 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
         <div className="container mx-auto px-4 md:px-8 lg:px-12 relative">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4 font-display">
             Browse by Genre
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">

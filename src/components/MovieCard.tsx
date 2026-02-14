@@ -109,7 +109,7 @@ export const MovieCard = ({
         {/* Rating Badge - Top Right */}
         {movie.vote_average > 0 && (
           <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm text-xs font-semibold">
-            <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+            <Star className="h-3 w-3 text-primary fill-primary" />
             <span>{movie.vote_average.toFixed(1)}</span>
           </div>
         )}

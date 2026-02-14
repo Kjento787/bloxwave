@@ -87,12 +87,12 @@ const Movies = () => {
                 </Badge>
                 {featuredMovie.vote_average && (
                   <Badge variant="outline" className="gap-1">
-                    <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                    <Star className="h-3 w-3 fill-primary text-primary" />
                     {featuredMovie.vote_average.toFixed(1)}
                   </Badge>
                 )}
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-shadow-lg">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-shadow-lg font-display">
                 {featuredMovie.title || featuredMovie.name}
               </h1>
               <p className="text-lg text-foreground/80 line-clamp-2">

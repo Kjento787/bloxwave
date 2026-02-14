@@ -84,7 +84,7 @@ const Search = () => {
       <main className="container mx-auto px-4 md:px-8 lg:px-12 pt-24 pb-12">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 font-display">
             {searchQuery ? (
               <>
                 Results for <span className="text-primary">"{searchQuery}"</span>
