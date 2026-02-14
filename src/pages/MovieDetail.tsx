@@ -254,7 +254,7 @@ const MovieDetail = () => {
             </div>
 
             {/* Title */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-shadow-lg">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-shadow-lg font-display">
               {movie.title}
             </h1>
 
@@ -448,7 +448,7 @@ const MovieDetail = () => {
                               className={cn(
                                 "h-4 w-4",
                                 i < Math.round(movie.vote_average / 2)
-                                  ? "text-yellow-500 fill-yellow-500"
+                                  ? "text-primary fill-primary"
                                   : "text-muted"
                               )}
                             />

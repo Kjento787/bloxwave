@@ -231,7 +231,7 @@ const Index = () => {
             <PreviewCarousel
               title="Popular Right Now"
               movies={popularData.results}
-              icon={<Flame className="h-5 w-5 text-orange-500" />}
+              icon={<Flame className="h-5 w-5 text-primary" />}
             />
           )}
 
@@ -242,7 +242,7 @@ const Index = () => {
               icon={Swords}
               movies={actionData.results}
               genreId={28}
-              accentColor="hsl(0, 84%, 60%)"
+              accentColor="hsl(40, 65%, 55%)"
             />
           )}
 
@@ -251,7 +251,7 @@ const Index = () => {
             <PreviewCarousel
               title="Trending TV Shows"
               movies={trendingTVData.results}
-              icon={<Tv className="h-5 w-5 text-blue-500" />}
+              icon={<Tv className="h-5 w-5 text-primary" />}
             />
           )}
 
@@ -262,7 +262,7 @@ const Index = () => {
               icon={Laugh}
               movies={comedyData.results}
               genreId={35}
-              accentColor="hsl(45, 93%, 47%)"
+              accentColor="hsl(40, 65%, 55%)"
             />
           )}
 
@@ -279,7 +279,7 @@ const Index = () => {
             <PreviewCarousel
               title="Critically Acclaimed"
               movies={topRatedData.results}
-              icon={<Star className="h-5 w-5 text-yellow-500" />}
+              icon={<Star className="h-5 w-5 text-primary" />}
             />
           )}
 
@@ -290,7 +290,7 @@ const Index = () => {
               icon={Ghost}
               movies={horrorData.results}
               genreId={27}
-              accentColor="hsl(270, 50%, 40%)"
+              accentColor="hsl(40, 50%, 40%)"
             />
           )}
 
@@ -301,7 +301,7 @@ const Index = () => {
               icon={Rocket}
               movies={scifiData.results}
               genreId={878}
-              accentColor="hsl(200, 100%, 50%)"
+              accentColor="hsl(40, 65%, 55%)"
             />
           )}
 
@@ -320,7 +320,7 @@ const Index = () => {
               icon={Heart}
               movies={romanceData.results}
               genreId={10749}
-              accentColor="hsl(340, 82%, 52%)"
+              accentColor="hsl(35, 70%, 50%)"
             />
           )}
 
@@ -331,7 +331,7 @@ const Index = () => {
               icon={Sparkles}
               movies={animeData.results}
               searchQuery="anime"
-              accentColor="hsl(280, 100%, 60%)"
+              accentColor="hsl(40, 65%, 55%)"
             />
           )}
 

@@ -169,7 +169,7 @@ const Profile = () => {
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left space-y-4">
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black font-display">
                   {profile?.display_name || 'My Profile'}
                 </h1>
                 {profile?.bio && (
@@ -397,7 +397,7 @@ const Profile = () => {
                           <Badge className={cn(
                             "text-xs",
                             item.content_type === "tv" 
-                              ? "bg-blue-500/80" 
+                              ? "bg-secondary/80" 
                               : "bg-primary/80"
                           )}>
                             {item.content_type === "tv" ? <Tv className="h-3 w-3 mr-1" /> : <Film className="h-3 w-3 mr-1" />}
@@ -406,7 +406,7 @@ const Profile = () => {
                         </div>
                         {item.vote_average && (
                           <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm text-xs font-medium">
-                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                            <Star className="h-3 w-3 text-primary fill-primary" />
                             {item.vote_average.toFixed(1)}
                           </div>
                         )}
@@ -465,7 +465,7 @@ const Profile = () => {
                         {item.year && <span>{item.year}</span>}
                         {item.vote_average && (
                           <span className="flex items-center gap-1">
-                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                            <Star className="h-3 w-3 text-primary fill-primary" />
                             {item.vote_average.toFixed(1)}
                           </span>
                         )}

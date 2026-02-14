@@ -80,13 +80,13 @@ export const HeroBanner = ({ movies }: HeroBannerProps) => {
             className="animate-slide-up"
           >
             {/* Title - HBO Max Style Large Typography */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-3 md:mb-4 leading-[0.95] tracking-tight text-shadow-lg">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-3 md:mb-4 leading-[0.95] tracking-tight text-shadow-lg font-display">
               {currentMovie.title}
             </h1>
 
             {/* Meta Info Row */}
             <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4 text-sm md:text-base">
-              <div className="flex items-center gap-1.5 text-yellow-400">
+              <div className="flex items-center gap-1.5 text-primary">
                 <Star className="h-4 w-4 md:h-5 md:w-5 fill-current" />
                 <span className="font-bold">{currentMovie.vote_average.toFixed(1)}</span>
               </div>
@@ -162,7 +162,7 @@ export const HeroBanner = ({ movies }: HeroBannerProps) => {
             className={cn(
               "relative h-1 md:h-1.5 rounded-full transition-all duration-500 overflow-hidden",
               index === currentIndex 
-                ? "w-10 md:w-12 bg-foreground" 
+                 ? "w-10 md:w-12 bg-primary" 
                 : "w-5 md:w-6 bg-foreground/30 hover:bg-foreground/50"
             )}
             aria-label={`Go to ${movie.title}`}
