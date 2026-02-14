@@ -35,20 +35,20 @@ interface HubData {
 }
 
 const hubs: HubData[] = [
-  { id: 1, name: "Action", icon: Swords, color: "hsl(0, 84%, 60%)", gradient: "from-red-600 to-orange-500", genreId: 28 },
-  { id: 2, name: "Comedy", icon: Laugh, color: "hsl(45, 93%, 47%)", gradient: "from-yellow-500 to-amber-400", genreId: 35 },
-  { id: 3, name: "Horror", icon: Ghost, color: "hsl(270, 50%, 40%)", gradient: "from-purple-800 to-violet-600", genreId: 27 },
-  { id: 4, name: "Sci-Fi", icon: Rocket, color: "hsl(200, 100%, 50%)", gradient: "from-cyan-500 to-blue-600", genreId: 878 },
-  { id: 5, name: "Romance", icon: Heart, color: "hsl(340, 82%, 52%)", gradient: "from-pink-500 to-rose-400", genreId: 10749 },
-  { id: 6, name: "Anime", icon: Sparkles, color: "hsl(280, 100%, 60%)", gradient: "from-purple-500 to-pink-500", genreId: 16, isTV: true },
-  { id: 7, name: "Drama", icon: Drama, color: "hsl(220, 70%, 50%)", gradient: "from-blue-600 to-indigo-500", genreId: 18 },
-  { id: 8, name: "Adventure", icon: Compass, color: "hsl(140, 70%, 40%)", gradient: "from-emerald-600 to-green-500", genreId: 12 },
-  { id: 9, name: "Thriller", icon: Skull, color: "hsl(0, 0%, 30%)", gradient: "from-gray-800 to-gray-600", genreId: 53 },
-  { id: 10, name: "Documentary", icon: Clapperboard, color: "hsl(30, 60%, 50%)", gradient: "from-amber-600 to-yellow-500", genreId: 99 },
-  { id: 11, name: "Music", icon: Music, color: "hsl(280, 80%, 60%)", gradient: "from-violet-500 to-purple-400", genreId: 10402 },
-  { id: 12, name: "Family", icon: Baby, color: "hsl(180, 60%, 50%)", gradient: "from-teal-500 to-cyan-400", genreId: 10751 },
-  { id: 13, name: "Fantasy", icon: Mountain, color: "hsl(260, 60%, 50%)", gradient: "from-indigo-600 to-purple-500", genreId: 14 },
-  { id: 14, name: "History", icon: Scroll, color: "hsl(25, 50%, 45%)", gradient: "from-amber-700 to-orange-500", genreId: 36 },
+  { id: 1, name: "Action", icon: Swords, color: "hsl(40, 65%, 55%)", gradient: "from-primary/80 to-primary/40", genreId: 28 },
+  { id: 2, name: "Comedy", icon: Laugh, color: "hsl(40, 65%, 55%)", gradient: "from-primary/70 to-accent/50", genreId: 35 },
+  { id: 3, name: "Horror", icon: Ghost, color: "hsl(40, 50%, 40%)", gradient: "from-muted/80 to-muted/40", genreId: 27 },
+  { id: 4, name: "Sci-Fi", icon: Rocket, color: "hsl(40, 65%, 55%)", gradient: "from-primary/60 to-accent/40", genreId: 878 },
+  { id: 5, name: "Romance", icon: Heart, color: "hsl(35, 70%, 50%)", gradient: "from-primary/70 to-primary/30", genreId: 10749 },
+  { id: 6, name: "Anime", icon: Sparkles, color: "hsl(40, 65%, 55%)", gradient: "from-primary/60 to-accent/50", genreId: 16, isTV: true },
+  { id: 7, name: "Drama", icon: Drama, color: "hsl(40, 65%, 55%)", gradient: "from-primary/70 to-muted/40", genreId: 18 },
+  { id: 8, name: "Adventure", icon: Compass, color: "hsl(40, 65%, 55%)", gradient: "from-primary/60 to-accent/40", genreId: 12 },
+  { id: 9, name: "Thriller", icon: Skull, color: "hsl(40, 50%, 40%)", gradient: "from-muted/80 to-muted/40", genreId: 53 },
+  { id: 10, name: "Documentary", icon: Clapperboard, color: "hsl(40, 65%, 55%)", gradient: "from-primary/70 to-primary/30", genreId: 99 },
+  { id: 11, name: "Music", icon: Music, color: "hsl(40, 65%, 55%)", gradient: "from-primary/60 to-accent/50", genreId: 10402 },
+  { id: 12, name: "Family", icon: Baby, color: "hsl(40, 65%, 55%)", gradient: "from-primary/50 to-accent/40", genreId: 10751 },
+  { id: 13, name: "Fantasy", icon: Mountain, color: "hsl(40, 65%, 55%)", gradient: "from-primary/70 to-accent/50", genreId: 14 },
+  { id: 14, name: "History", icon: Scroll, color: "hsl(40, 65%, 55%)", gradient: "from-primary/80 to-primary/40", genreId: 36 },
 ];
 
 const HubCard = ({ hub }: { hub: HubData }) => {
@@ -123,7 +123,7 @@ const Hubs = () => {
         {/* Hero Header */}
         <div className="relative pt-20 pb-12 px-4 md:px-8 lg:px-12">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-display text-foreground">
               Browse by Hub
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

@@ -516,7 +516,7 @@ const Admin = () => {
           <Card className="border-border/50 hover:border-primary/50 transition-colors">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                <AlertTriangle className="h-5 w-5 text-primary" />
                 Pending Reports
               </CardTitle>
             </CardHeader>
@@ -527,7 +527,7 @@ const Admin = () => {
           <Card className="border-border/50 hover:border-primary/50 transition-colors">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-blue-500" />
+                <MessageSquare className="h-5 w-5 text-primary" />
                 Total Reviews
               </CardTitle>
             </CardHeader>
@@ -674,7 +674,7 @@ const Admin = () => {
                                   size="icon"
                                   onClick={() => setSelectedUserId(role.user_id)}
                                 >
-                                  <Ban className="h-4 w-4 text-yellow-500" />
+                                  <Ban className="h-4 w-4 text-primary" />
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
@@ -801,7 +801,7 @@ const Admin = () => {
                             {banned ? (
                               <Badge variant="destructive">Banned</Badge>
                             ) : (
-                              <Badge variant="outline" className="text-green-500 border-green-500/50">Active</Badge>
+                              <Badge variant="outline" className="text-primary border-primary/50">Active</Badge>
                             )}
                           </TableCell>
                           <TableCell className="text-right space-x-2">
@@ -813,7 +813,7 @@ const Admin = () => {
                                   onClick={() => setSelectedUserId(profile.id)}
                                   disabled={banned}
                                 >
-                                  <Ban className="h-4 w-4 text-yellow-500" />
+                                  <Ban className="h-4 w-4 text-primary" />
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
@@ -926,7 +926,7 @@ const Admin = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                  <AlertTriangle className="h-5 w-5 text-primary" />
                   Content Reports
                 </CardTitle>
                 <CardDescription>Review and manage user reports</CardDescription>
@@ -965,7 +965,7 @@ const Admin = () => {
                               size="icon"
                               onClick={() => updateReportMutation.mutate({ reportId: report.id, status: "resolved" })}
                             >
-                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <CheckCircle className="h-4 w-4 text-primary" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -1016,7 +1016,7 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                              <Star className="h-4 w-4 text-primary fill-primary" />
                               {review.rating}/10
                             </div>
                           </TableCell>
@@ -1056,7 +1056,7 @@ const Admin = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500" />
+                  <Star className="h-5 w-5 text-primary" />
                   Featured Content
                 </CardTitle>
                 <CardDescription>Manage homepage featured content</CardDescription>
@@ -1091,7 +1091,7 @@ const Admin = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-500" />
+                    <TrendingUp className="h-5 w-5 text-primary" />
                     User Growth
                   </CardTitle>
                 </CardHeader>
@@ -1103,7 +1103,7 @@ const Admin = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-blue-500" />
+                    <MessageSquare className="h-5 w-5 text-primary" />
                     Engagement
                   </CardTitle>
                 </CardHeader>
@@ -1115,7 +1115,7 @@ const Admin = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Crown className="h-5 w-5 text-yellow-500" />
+                    <Crown className="h-5 w-5 text-primary" />
                     Admins
                   </CardTitle>
                 </CardHeader>

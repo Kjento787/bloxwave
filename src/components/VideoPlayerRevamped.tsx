@@ -244,11 +244,11 @@ export const VideoPlayerRevamped = ({
               )}
             </div>
             {adBlockerEnabled && (
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium flex-shrink-0">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-medium flex-shrink-0">
                 <ShieldCheck className="h-4 w-4" />
                 <span>Protected</span>
                 {popupBlocked > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-emerald-500/30 rounded-full text-[10px] font-bold">
+                  <span className="ml-1 px-1.5 py-0.5 bg-primary/30 rounded-full text-[10px] font-bold">
                     {popupBlocked}
                   </span>
                 )}

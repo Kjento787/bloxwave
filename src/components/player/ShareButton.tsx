@@ -65,7 +65,7 @@ export const ShareButton = ({ contentId, contentType, title, season, episode }: 
         <p className="text-sm font-medium mb-2">Share this content</p>
         <div className="flex flex-col gap-2">
           <Button variant="outline" size="sm" className="justify-start gap-2" onClick={handleCopy}>
-            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copied!" : "Copy link"}
           </Button>
           {typeof navigator.share === "function" && (
