@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, User, Menu, X, LogIn, LogOut, Shield, Bookmark } from "lucide-react";
+import { Search, User, Menu, X, LogOut, Shield, Bookmark } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -21,9 +21,7 @@ export const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -40,20 +38,14 @@ export const Navbar = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdminStatus(session.user.id);
-      }
+      if (session?.user) checkAdminStatus(session.user.id);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin");
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin");
     setIsAdmin(data && data.length > 0);
   };
 
@@ -68,12 +60,20 @@ export const Navbar = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem("activeViewerProfile");
     toast.success("Signed out successfully");
     navigate("/");
   };
 
+  const activeProfile = (() => {
+    try {
+      const stored = localStorage.getItem("activeViewerProfile");
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  })();
+
   const navLinks = [
-    { href: "/", label: "Home" },
+    { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/genres", label: "Series" },
     { href: "/hubs", label: "Hubs" },
@@ -86,25 +86,21 @@ export const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         isScrolled
-          ? "bg-background/95 backdrop-blur-xl"
+          ? "bg-background/95 backdrop-blur-xl border-b border-border/30"
           : "bg-gradient-to-b from-background/90 via-background/50 to-transparent"
       )}
     >
       <div className="w-full px-4 md:px-8 lg:px-12">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Logo />
+        <div className="flex items-center justify-between h-16 md:h-18">
+          <Logo size="sm" />
 
-          {/* Desktop Navigation - Center */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center justify-center flex-1 gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className={cn(
-                  "hbo-nav-link",
-                  isActive(link.href) && "active text-foreground"
-                )}
+                className={cn("hbo-nav-link", isActive(link.href) && "active text-foreground")}
               >
                 {link.label}
               </Link>
@@ -125,37 +121,19 @@ export const Navbar = () => {
                     className="w-40 md:w-56 h-9 bg-secondary/80 border-0 focus:ring-1 focus:ring-primary rounded-full text-sm"
                     autoFocus
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 ml-1 rounded-full"
-                    onClick={() => {
-                      setSearchOpen(false);
-                      setSearchQuery("");
-                    }}
-                  >
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 ml-1 rounded-full" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}>
                     <X className="h-4 w-4" />
                   </Button>
                 </form>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSearchOpen(true)}
-                  className="h-9 w-9 rounded-full hover:bg-secondary/50"
-                >
+                <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} className="h-9 w-9 rounded-full hover:bg-secondary/50">
                   <Search className="h-5 w-5" />
                 </Button>
               )}
             </div>
 
-            {/* Theme Toggle */}
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
+            <div className="hidden md:block"><ThemeToggle /></div>
 
-            {/* Watchlist */}
             {user && (
               <Link to="/profile" className="hidden md:block">
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary/50" title="My List">
@@ -164,7 +142,6 @@ export const Navbar = () => {
               </Link>
             )}
 
-            {/* Auth/Profile */}
             {user ? (
               <>
                 {isAdmin && (
@@ -174,8 +151,9 @@ export const Navbar = () => {
                     </Button>
                   </Link>
                 )}
-                <Link to="/profile">
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary/50">
+                {/* Profile switcher */}
+                <Link to="/profiles">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary/50" title={activeProfile?.name || "Switch Profile"}>
                     <User className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -190,19 +168,13 @@ export const Navbar = () => {
                 </Button>
               </>
             ) : (
-              <Link to="/auth">
-                <Button 
-                  className="hidden md:flex h-9 px-4 rounded-full bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold"
-                >
+              <Link to="/">
+                <Button className="hidden md:flex h-9 px-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold">
                   Sign In
-                </Button>
-                <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-full" title="Sign In">
-                  <LogIn className="h-5 w-5" />
                 </Button>
               </Link>
             )}
 
-            {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -225,9 +197,7 @@ export const Navbar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                    isActive(link.href)
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    isActive(link.href) ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                   )}
                 >
                   {link.label}
@@ -242,32 +212,19 @@ export const Navbar = () => {
               {user ? (
                 <>
                   {isAdmin && (
-                    <Link
-                      to="/admin"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="px-4 py-3 rounded-lg text-base font-medium text-primary hover:bg-secondary/50 flex items-center gap-2"
-                    >
-                      <Shield className="h-4 w-4" />
-                      Admin Panel
+                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-primary hover:bg-secondary/50 flex items-center gap-2">
+                      <Shield className="h-4 w-4" /> Admin Panel
                     </Link>
                   )}
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="px-4 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary/50 text-left flex items-center gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
+                  <Link to="/profiles" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary/50 flex items-center gap-2">
+                    <User className="h-4 w-4" /> Switch Profile
+                  </Link>
+                  <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className="px-4 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary/50 text-left flex items-center gap-2">
+                    <LogOut className="h-4 w-4" /> Sign Out
                   </button>
                 </>
               ) : (
-                <Link
-                  to="/auth"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="mx-4 mt-2 py-3 rounded-full bg-foreground text-background font-semibold text-center"
-                >
+                <Link to="/" onClick={() => setMobileMenuOpen(false)} className="mx-4 mt-2 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-center">
                   Sign In
                 </Link>
               )}

@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import Landing from "./pages/Landing";
+import ProfileSelect from "./pages/ProfileSelect";
 import Index from "./pages/Index";
 import Movies from "./pages/Movies";
 import Genres from "./pages/Genres";
@@ -38,7 +40,12 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Index />} />
+        {/* Landing / Auth gate */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/profiles" element={<ProfileSelect />} />
+        
+        {/* Main app routes */}
+        <Route path="/home" element={<Index />} />
         <Route path="/movies" element={<Movies />} />
         <Route path="/genres" element={<Genres />} />
         <Route path="/hubs" element={<Hubs />} />
