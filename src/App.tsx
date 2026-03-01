@@ -1,9 +1,11 @@
+import { useState, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { SplashScreen } from "@/components/SplashScreen";
 import Landing from "./pages/Landing";
 import ProfileSelect from "./pages/ProfileSelect";
 import Index from "./pages/Index";
@@ -67,18 +69,31 @@ const AnimatedRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <HashRouter>
-        <BanCheckWrapper>
-          <AnimatedRoutes />
-        </BanCheckWrapper>
-      </HashRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showSplash, setShowSplash] = useState(() => {
+    const seen = sessionStorage.getItem("bloxwave-splash-seen");
+    return !seen;
+  });
+
+  const handleSplashComplete = useCallback(() => {
+    sessionStorage.setItem("bloxwave-splash-seen", "true");
+    setShowSplash(false);
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+        <HashRouter>
+          <BanCheckWrapper>
+            <AnimatedRoutes />
+          </BanCheckWrapper>
+        </HashRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
