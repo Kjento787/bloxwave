@@ -45,20 +45,42 @@ Deno.serve(async (req) => {
       const posterUrl = movie.poster_path
         ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
         : null;
+      const backdropUrl = movie.backdrop_path
+        ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+        : null;
 
       const movieUrl = `https://bloxwave.lovable.app/#/movie/${movie.id}`;
+      const year = movie.release_date ? movie.release_date.split("-")[0] : "TBA";
+      const rating = movie.vote_average ? `${movie.vote_average.toFixed(1)}` : "N/A";
+      const ratingBar = movie.vote_average
+        ? "█".repeat(Math.round(movie.vote_average)) + "░".repeat(10 - Math.round(movie.vote_average))
+        : "░░░░░░░░░░";
 
       const embed = {
-        title: `🎬 ${movie.title}`,
-        description: movie.overview?.slice(0, 200) || "No description available.",
+        title: movie.title,
+        description: [
+          `> ${movie.overview?.slice(0, 180) || "No synopsis available."}${movie.overview?.length > 180 ? "…" : ""}`,
+          "",
+          `**[▶ Stream Now on Bloxwave](${movieUrl})**`,
+        ].join("\n"),
         url: movieUrl,
-        color: 0xd4a44a, // gold accent
+        color: 0xd4a44a,
         thumbnail: posterUrl ? { url: posterUrl } : undefined,
+        image: backdropUrl ? { url: backdropUrl } : undefined,
         fields: [
-          { name: "⭐ Rating", value: `${movie.vote_average?.toFixed(1) || "N/A"}/10`, inline: true },
-          { name: "📅 Release", value: movie.release_date || "TBA", inline: true },
+          {
+            name: "Rating",
+            value: `\`${ratingBar}\` **${rating}**/10`,
+            inline: false,
+          },
+          { name: "Year", value: `\`${year}\``, inline: true },
+          { name: "Popularity", value: `\`#${Math.round(movie.popularity)}\``, inline: true },
+          { name: "Language", value: `\`${(movie.original_language || "en").toUpperCase()}\``, inline: true },
         ],
-        footer: { text: "Bloxwave • New Movie Alert" },
+        footer: {
+          text: "BLOXWAVE · New Drop",
+          icon_url: "https://bloxwave.lovable.app/favicon.ico",
+        },
         timestamp: new Date().toISOString(),
       };
 
@@ -66,7 +88,9 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: `🍿 **New movie now available!**`,
+          username: "Bloxwave",
+          avatar_url: "https://bloxwave.lovable.app/favicon.ico",
+          content: `# 🎬 New Drop\n**${movie.title}** just landed — stream it now.`,
           embeds: [embed],
         }),
       });
