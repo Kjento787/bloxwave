@@ -199,6 +199,27 @@ export type Database = {
         }
         Relationships: []
       }
+      notified_movies: {
+        Row: {
+          id: string
+          notified_at: string
+          title: string
+          tmdb_id: number
+        }
+        Insert: {
+          id?: string
+          notified_at?: string
+          title: string
+          tmdb_id: number
+        }
+        Update: {
+          id?: string
+          notified_at?: string
+          title?: string
+          tmdb_id?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
